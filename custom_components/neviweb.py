@@ -18,9 +18,10 @@ from homeassistant.util import Throttle
 DOMAIN = 'neviweb'
 DATA_DOMAIN = 'data_' + DOMAIN
 CONF_NETWORK = 'network'
+CONF_SCAN_INTERVAL = 'scan_interval'
 _LOGGER = logging.getLogger(__name__)
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=900)
+SCAN_INTERVAL = timedelta(seconds=900)
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
@@ -34,6 +35,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Optional(CONF_NETWORK): cv.string,
+        vol.Optional(CONF_SCAN_INTERVAL): cv.string,
     })
 }, extra=vol.ALLOW_EXTRA)
 
@@ -57,10 +59,11 @@ class NeviwebData:
         username = config.get(CONF_USERNAME)
         password = config.get(CONF_PASSWORD)
         network = config.get(CONF_NETWORK)
+        scan_interval = config.get(CONF_SCAN_INTERVAL)
         self.neviweb_client = NeviwebClient(username, password, network)
 
     # Need some refactoring here concerning the class used to transport data
-    # @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    # @Throttle(SCAN_INTERVAL)
     # def update(self):
     #     """Get the latest data from pyneviweb."""
     #     self.neviweb_client.update()
