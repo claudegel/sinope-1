@@ -23,6 +23,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1500RF Double-pole thermostat
   - *Ouellet OTH2750-GT Line voltage thermostat
   - *Ouellet OTH3600-GA-GT Floor heating thermostat
+  - *Ouellet OTH4000-GT thermostat
+  - *Flextherm INSTINCT Connect thermostat
 - Lighting
   - Sinopé SW2500RF Light switch
   - Sinopé DM2500RF Dimmer 
