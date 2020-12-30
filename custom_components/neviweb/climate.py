@@ -5,7 +5,10 @@ type 10 = thermostat TH1121RF 3000W and 4000W, (Public place)
 type 20 = thermostat TH1300RF 3600W floor, 
 type 20 = thermostat TH1500RF double pole thermostat,
 type 21 = thermostat TH1400RF low voltage,
-type 21 = thermostat TH1400WF low voltage, (wifi)
+type 10 = thermostat OTH2750-GT Ouellet,
+type 20 = thermostat OTH3600-GA-GT Ouellet floor,
+type 10 = thermostat OTH4000-GT Ouellet,
+type 20 = thermostat INSTINCT Connect, Flextherm,
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
