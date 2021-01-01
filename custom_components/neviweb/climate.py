@@ -1,7 +1,7 @@
 """
 Support for Neviweb thermostat.
-type 10 = thermostat TH1120RF 3000W and 4000W,
-type 10 = thermostat TH1121RF 3000W and 4000W, (Public place)
+type 10 = thermostat TH1120RF 3000W and 4000W, model 1120, 1122
+type 10 = thermostat TH1121RF 3000W and 4000W, (Public place) model 1121, 1123
 type 20 = thermostat TH1300RF 3600W floor, 
 type 20 = thermostat TH1500RF double pole thermostat,
 type 21 = thermostat TH1400RF low voltage,
@@ -34,8 +34,9 @@ from homeassistant.components.climate.const import (
 )
 
 from homeassistant.const import (
+    DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
-    TEMP_FAHRENHEIT, 
+    TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE,
 )
 
@@ -51,6 +52,11 @@ from .const import (
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_WATTAGE,
+    ATTR_ALARM,
+    ATTR_AWAY_SETPOINT,
+    ATTR_EARLY_START,
+    ATTR_KEYPAD,
+    ATTR_DISPLAY_2,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -72,6 +78,11 @@ UPDATE_ATTRIBUTES = [
     ATTR_ROOM_TEMPERATURE,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ALARM,
+    ATTR_AWAY_SETPOINT,
+    ATTR_EARLY_START,
+    ATTR_KEYPAD,
+    ATTR_DISPLAY_2,
 ]
 
 SUPPORTED_HVAC_MODES = [
@@ -125,15 +136,18 @@ class NeviwebThermostat(ClimateEntity):
         self._client = data.neviweb_client
         self._id = device_info["id"]
         self._wattage = 0
-        #self._wattage_override = device_info["wattageOverride"]
         self._min_temp = 0
         self._max_temp = 0
         self._target_temp = None
         self._cur_temp = None
         self._rssi = None
-        #self._alarm = None
+        self._alarm = None
+        self._early_start = None
         self._operation_mode = None
         self._heat_level = 0
+        self._away_temp = None
+        self._keypad = "Unlocked"
+        self._display_2 = None
         self._is_low_voltage = device_info["signature"]["type"] in \
             IMPLEMENTED_LOW_VOLTAGE
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -157,12 +171,16 @@ class NeviwebThermostat(ClimateEntity):
                 self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
                 self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) if \
                     device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
+                self._away_temp = float(device_data[ATTR_AWAY_SETPOINT])
                 self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                #self._alarm = device_data["alarm"]
+                self._alarm = device_data[ATTR_ALARM]["type"]
                 self._rssi = device_data[ATTR_RSSI]
                 self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
+                self._early_start = device_data[ATTR_EARLY_START]
+                self._keypad = device_data[ATTR_KEYPAD]
+                self._display_2 = device_data[ATTR_DISPLAY_2]
                 if not self._is_low_voltage:
                     self._wattage = device_data[ATTR_WATTAGE]["value"]
                 return
@@ -195,6 +213,16 @@ class NeviwebThermostat(ClimateEntity):
         return self._name
 
     @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity, if any."""
+        return TEMP_CELSIUS
+
+    @property
+    def device_class(self):
+        """Return the device class of this entity."""
+        return DEVICE_CLASS_TEMPERATURE
+
+    @property
     def device_state_attributes(self):
         """Return the state attributes."""
         data = {}
@@ -202,6 +230,11 @@ class NeviwebThermostat(ClimateEntity):
             data = {'wattage': self._wattage}
         data.update ({'heat_level': self._heat_level,
                       'rssi': self._rssi,
+                      'alarm': self._alarm,
+                      'keypad': self._keypad,
+                      'away_temp': self._away_temp,
+                      'early_start': self._early_start,
+                      'sec._display': self._display_2,
                       'id': self._id})
         return data
 
