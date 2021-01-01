@@ -1,7 +1,7 @@
 """
 Support for Neviweb light switch/dimmer.
-type 102 = light switch SW2500RF,
-type 112 = light dimmer DM2500RF
+type 102 = light switch SW2500RF, model 2120
+type 112 = light dimmer DM2500RF, model 2130
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -12,24 +12,57 @@ import time
 
 import custom_components.neviweb as neviweb
 from . import (SCAN_INTERVAL)
-from homeassistant.components.light import (LightEntity, ATTR_BRIGHTNESS,
-    ATTR_BRIGHTNESS_PCT, SUPPORT_BRIGHTNESS)
+from homeassistant.components.light import (
+    LightEntity,
+    ATTR_BRIGHTNESS,
+    ATTR_BRIGHTNESS_PCT,
+    SUPPORT_BRIGHTNESS,
+)
+
 from datetime import timedelta
-from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_RSSI,
-    ATTR_WATTAGE_OVERRIDE, MODE_AUTO, MODE_MANUAL, ATTR_OCCUPANCY)
+from .const import (
+    DOMAIN,
+    ATTR_POWER_MODE,
+    ATTR_INTENSITY,
+    ATTR_RSSI,
+    ATTR_WATTAGE_OVERRIDE,
+    ATTR_OCCUPANCY,
+    ATTR_AWAY_MODE,
+    ATTR_KEYPAD,
+    ATTR_TIMER,
+    ATTR_LED_ON,
+    ATTR_LED_OFF,
+    MODE_AUTO,
+    MODE_MANUAL,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb'
 
-UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_RSSI, 
-    ATTR_WATTAGE_OVERRIDE, ATTR_OCCUPANCY]
+UPDATE_ATTRIBUTES = [
+    ATTR_POWER_MODE,
+    ATTR_INTENSITY,
+    ATTR_RSSI,
+    ATTR_WATTAGE_OVERRIDE,
+    ATTR_OCCUPANCY,
+    ATTR_AWAY_MODE,
+    ATTR_KEYPAD,
+    ATTR_TIMER,
+    ATTR_LED_ON,
+    ATTR_LED_OFF,
+]
 
 DEVICE_TYPE_DIMMER = [112]
 DEVICE_TYPE_LIGHT = [102]
 IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass,
+    config,
+    async_add_entities,
+    discovery_info=None,
+):
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
     
@@ -69,11 +102,16 @@ class NeviwebLight(LightEntity):
         self._name = name
         self._client = data.neviweb_client
         self._id = device_info["id"]
-        self._wattage_override = 0 # keyCheck("wattageOverride", device_info, 0, name)
+        self._wattage_override = 0
         self._brightness_pct = 0
         self._operation_mode = 1
         self._rssi = None
         self._occupancy = None
+        self._away_mode = None
+        self._keypad = "Unlocked"
+        self._timer = 0
+        self._led_on = "0,0,0,0"
+        self._led_off = "0,0,0,0"
         self._is_dimmable = device_info["signature"]["type"] in \
             DEVICE_TYPE_DIMMER
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -96,6 +134,11 @@ class NeviwebLight(LightEntity):
                 self._rssi = device_data[ATTR_RSSI]
                 self._wattage_override = device_data[ATTR_WATTAGE_OVERRIDE]
                 self._occupancy = device_data[ATTR_OCCUPANCY]
+                self._away_mode = device_data[ATTR_AWAY_MODE]["value"]["action"]
+                self._keypad = device_data[ATTR_KEYPAD]
+                self._timer = device_data[ATTR_TIMER]
+                self._led_on = str(device_data[ATTR_LED_ON]["intensity"])+","+str(device_data[ATTR_LED_ON]["red"])+","+str(device_data[ATTR_LED_ON]["green"])+","+str(device_data[ATTR_LED_ON]["blue"])
+                self._led_off = str(device_data[ATTR_LED_OFF]["intensity"])+","+str(device_data[ATTR_LED_OFF]["red"])+","+str(device_data[ATTR_LED_OFF]["green"])+","+str(device_data[ATTR_LED_OFF]["blue"])
                 return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
@@ -133,7 +176,31 @@ class NeviwebLight(LightEntity):
     def name(self):
         """Return the name of the light."""
         return self._name
-    
+
+    @property
+    def device_class(self):
+        """Return the device class of this entity."""
+        return "light"
+
+    @property
+    def device_state_attributes(self):
+        """Return the state attributes."""
+        data = {}
+        if self._is_dimmable and self._brightness_pct:
+            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
+        data.update({#'alarm': self._alarm,
+                     'operation_mode': self.operation_mode,
+                     'rssi': self._rssi,
+                     'keypad': self._keypad,
+                     'timer': self._timer,
+                     'occupancy': self._occupancy,
+                     'away_mode': self._away_mode,
+                     'wattage_override': self._wattage_override,
+                     'led_on': self._led_on,
+                     'led_off': self._led_off,
+                     'id': self._id})
+        return data
+
     @property
     def brightness(self):
         """Return intensity of light"""
@@ -157,20 +224,6 @@ class NeviwebLight(LightEntity):
     def turn_off(self, **kwargs):
         """Turn the light off."""
         self._client.set_brightness(self._id, 0)
-
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        data = {}
-        if self._is_dimmable and self._brightness_pct:
-            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
-        data.update({#'alarm': self._alarm,
-                     'operation_mode': self.operation_mode,
-                     'rssi': self._rssi,
-                     'occupancy': self._occupancy,
-                     'wattage_override': self._wattage_override,
-                     'id': self._id})
-        return data
  
     @property
     def operation_mode(self):

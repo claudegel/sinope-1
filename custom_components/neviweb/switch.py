@@ -1,6 +1,6 @@
 """
 Support for Neviweb switch.
-type 120 = load controller device, RM3250RF and RM3200RF
+type 120 = load controller device, RM3250RF and RM3200RF model 2505
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -11,23 +11,57 @@ import time
 
 import custom_components.neviweb as neviweb
 from . import (SCAN_INTERVAL)
-from homeassistant.components.switch import (SwitchEntity, 
-    ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
+from homeassistant.components.switch import (
+    SwitchEntity,
+    ATTR_TODAY_ENERGY_KWH,
+    ATTR_CURRENT_POWER_W,
+)
+
+from homeassistant.const import (
+    DEVICE_CLASS_POWER,
+)
+
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
-from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_RSSI,
-    ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, MODE_AUTO, MODE_MANUAL, ATTR_OCCUPANCY)
+from .const import (
+    DOMAIN,
+    ATTR_POWER_MODE,
+    ATTR_INTENSITY,
+    ATTR_RSSI,
+    ATTR_WATTAGE,
+    ATTR_WATTAGE_INSTANT,
+    ATTR_TIMER,
+    ATTR_OCCUPANCY,
+    ATTR_AWAY_MODE,
+    ATTR_KEYPAD,
+    MODE_AUTO,
+    MODE_MANUAL,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb switch'
 
-UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_RSSI, 
-    ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_OCCUPANCY]
+UPDATE_ATTRIBUTES = [
+    ATTR_POWER_MODE,
+    ATTR_INTENSITY,
+    ATTR_RSSI,
+    ATTR_WATTAGE,
+    ATTR_WATTAGE_INSTANT,
+    ATTR_TIMER,
+    ATTR_KEYPAD,
+    ATTR_OCCUPANCY,
+    ATTR_AWAY_MODE,
+]
 
 IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass,
+    config,
+    async_add_entities,
+    discovery_info=None,
+):
     """Set up the Neviweb switch."""
     data = hass.data[DOMAIN]
     
@@ -55,13 +89,16 @@ class NeviwebSwitch(SwitchEntity):
         self._name = name
         self._client = data.neviweb_client
         self._id = device_info["id"]
-        self._wattage = 0 # keyCheck("wattage", device_info, 0, name)
+        self._wattage = 0
         self._brightness = 0
         self._operation_mode = 1
         self._current_power_w = None
         self._today_energy_kwh = None
         self._rssi = None
+        self._timer = 0
         self._occupancy = None
+        self._away_mode = None
+        self._keypad = "Unlocked"
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -80,11 +117,13 @@ class NeviwebSwitch(SwitchEntity):
                     device_data[ATTR_INTENSITY] is not None else 0.0
                 self._operation_mode = device_data[ATTR_POWER_MODE] if \
                     device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
-                #self._alarm = device_data["alarm"]
                 self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]["value"]
                 self._wattage = device_data[ATTR_WATTAGE]["value"]
                 self._rssi = device_data[ATTR_RSSI]
+                self._timer = device_data[ATTR_TIMER]
                 self._occupancy = device_data[ATTR_OCCUPANCY]
+                self._away_mode = device_data[ATTR_AWAY_MODE]["value"]["action"]
+                self._keypad = device_data[ATTR_KEYPAD]
                 self._today_energy_kwh = device_daily_stats[0] / 1000 if \
                     device_daily_stats[0] is not None else 0
                 return
@@ -118,6 +157,11 @@ class NeviwebSwitch(SwitchEntity):
         """Return the name of the switch."""
         return self._name
 
+    @property
+    def device_class(self):
+        """Return the device class of this entity."""
+        return DEVICE_CLASS_POWER
+
     @property  
     def is_on(self):
         """Return current operation i.e. ON, OFF """
@@ -136,7 +180,10 @@ class NeviwebSwitch(SwitchEntity):
         """Return the state attributes."""
         return {'operation_mode': self.operation_mode,
                 'rssi': self._rssi,
+                'timer': self._timer,
                 'occupancy': self._occupancy,
+                'occupancy_mode': self._away_mode,
+                'keypad': self._keypad,
                 'wattage': self._wattage,
                 'id': self._id}
        
