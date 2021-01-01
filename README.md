@@ -77,8 +77,8 @@ To enable Neviweb management in your installation, add the following to your `co
 neviweb:
   username: '<your Neviweb username>'
   password: '<your Neviweb password>'
-  network: '<your first network>'
-  network2: '<your second network>'
+  network: '<your first location in Neviweb>' (1er emplacement)
+  network2: '<your second location in Neviweb>' (2e emplacement)
 ```
 
 **Configuration options:**  
@@ -87,8 +87,8 @@ neviweb:
 | --- | --- | --- | ---
 | **username** | yes |  | Your email address used to log in Neviweb.
 | **password** | yes |  | Your Neviweb password.
-| **network** | no | 1st network found | The name of the GT125 network you want to control.
-| **network2** | no | 2nd network found | The name of the second GT125 network you want to control.
+| **network** | no | 1st location found | The name of the GT125 location you want to control.
+| **network2** | no | 2nd location found | The name of the second GT125 location you want to control.
 | **scan_interval** | no | 540 | The number of seconds between access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 
 If you have also a GT130 also connected to Neviweb the network parameter is mandatory or it is possible that during the setup, the GT130 network will be picked up accidentally. If you have only two GT125 network, you can omit there names as during setup, the first two network found will be picked up automatically. If you prefer to add networs names make sure that they are written «exactly» as in Neviweb. (first letter capitalized or not).
