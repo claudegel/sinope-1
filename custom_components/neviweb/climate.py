@@ -140,6 +140,7 @@ class NeviwebThermostat(ClimateEntity):
         self._max_temp = 0
         self._target_temp = None
         self._cur_temp = None
+        self._cur_temp_before = None
         self._rssi = None
         self._alarm = None
         self._early_start = None
@@ -168,7 +169,9 @@ class NeviwebThermostat(ClimateEntity):
 
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
+                self._cur_temp_before = self._cur_temp
+                self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
+                    device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
                 self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) if \
                     device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
                 self._away_temp = float(device_data[ATTR_AWAY_SETPOINT])
