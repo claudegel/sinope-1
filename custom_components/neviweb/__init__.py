@@ -27,7 +27,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.2.5'
+VERSION = '1.3.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -226,14 +226,14 @@ class NeviwebClient(object):
             data = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
             if ATTR_SIGNATURE in data:
                 device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
-            # _LOGGER.debug("Received signature data: %s", data)
+           # _LOGGER.debug("Received signature data: %s", data)
         if self._gateway_id2 is not None:          
             for device in self.gateway_data2:
                 data2 = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
                 if ATTR_SIGNATURE in data2:
                     device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
-                # _LOGGER.debug("Received signature data: %s", data)
-        # _LOGGER.debug("Updated gateway data: %s", self.gateway_data)
+               # _LOGGER.debug("Received signature data: %s", data)
+       # _LOGGER.debug("Updated gateway data: %s", self.gateway_data)
 
     def get_device_attributes(self, device_id, attributes):
         """Get device attributes."""
