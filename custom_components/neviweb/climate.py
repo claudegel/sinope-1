@@ -20,18 +20,43 @@ import time
 import custom_components.neviweb as neviweb
 from . import (SCAN_INTERVAL)
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate.const import (HVAC_MODE_HEAT, 
-    HVAC_MODE_OFF, HVAC_MODE_AUTO, SUPPORT_TARGET_TEMPERATURE, 
-    SUPPORT_PRESET_MODE, PRESET_AWAY, PRESET_NONE, CURRENT_HVAC_HEAT, 
-    CURRENT_HVAC_IDLE, CURRENT_HVAC_OFF)
-from homeassistant.const import (TEMP_CELSIUS, TEMP_FAHRENHEIT, 
-    ATTR_TEMPERATURE)
+from homeassistant.components.climate.const import (
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
+    HVAC_MODE_AUTO,
+    SUPPORT_TARGET_TEMPERATURE,
+    SUPPORT_PRESET_MODE,
+    PRESET_AWAY,
+    PRESET_NONE,
+    CURRENT_HVAC_HEAT,
+    CURRENT_HVAC_IDLE,
+    CURRENT_HVAC_OFF,
+)
+
+from homeassistant.const import (
+    TEMP_CELSIUS,
+    TEMP_FAHRENHEIT, 
+    ATTR_TEMPERATURE,
+)
+
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
-from .const import (DOMAIN, ATTR_RSSI, ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
-    ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, MODE_AUTO, MODE_AUTO_BYPASS, 
-    MODE_MANUAL, MODE_OFF, MODE_AWAY)
+from .const import (
+    DOMAIN,
+    ATTR_RSSI,
+    ATTR_SETPOINT_MODE,
+    ATTR_ROOM_SETPOINT,
+    ATTR_OUTPUT_PERCENT_DISPLAY,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_WATTAGE,
+    MODE_AUTO,
+    MODE_AUTO_BYPASS,
+    MODE_MANUAL,
+    MODE_OFF,
+    MODE_AWAY,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,24 +64,39 @@ SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
 
 DEFAULT_NAME = "neviweb climate"
 
-UPDATE_ATTRIBUTES = [ATTR_SETPOINT_MODE, ATTR_RSSI, ATTR_ROOM_SETPOINT,
-    ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX]
+UPDATE_ATTRIBUTES = [
+    ATTR_SETPOINT_MODE,
+    ATTR_RSSI,
+    ATTR_ROOM_SETPOINT,
+    ATTR_OUTPUT_PERCENT_DISPLAY,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_SETPOINT_MAX,
+]
 
-SUPPORTED_HVAC_MODES = [HVAC_MODE_OFF, HVAC_MODE_AUTO, HVAC_MODE_HEAT]
+SUPPORTED_HVAC_MODES = [
+    HVAC_MODE_OFF,
+    HVAC_MODE_AUTO,
+    HVAC_MODE_HEAT,
+]
 
 PRESET_BYPASS = 'temporary'
 PRESET_MODES = [
     PRESET_NONE,
     PRESET_AWAY,
-    PRESET_BYPASS
+    PRESET_BYPASS,
 ]
 
 IMPLEMENTED_LOW_VOLTAGE = [21]
 IMPLEMENTED_THERMOSTAT = [10, 20]
 IMPLEMENTED_DEVICE_TYPES = IMPLEMENTED_THERMOSTAT + IMPLEMENTED_LOW_VOLTAGE
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass,
+    config,
+    async_add_entities,
+    discovery_info=None,
+):
     """Set up the neviweb thermostats."""
     data = hass.data[DOMAIN]
     
