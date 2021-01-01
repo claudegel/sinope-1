@@ -7,15 +7,27 @@ import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import discovery
-from homeassistant.const import (CONF_USERNAME, CONF_EMAIL, CONF_PASSWORD,
-    CONF_SCAN_INTERVAL)
+from homeassistant.const import (
+    CONF_USERNAME,
+    CONF_EMAIL,
+    CONF_PASSWORD,
+    CONF_SCAN_INTERVAL,
+)
+
 from homeassistant.util import Throttle
-from .const import (DOMAIN, CONF_NETWORK, CONF_NETWORK2, ATTR_INTENSITY, ATTR_POWER_MODE,
-    ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT, ATTR_SIGNATURE)
+from .const import (
+    DOMAIN,
+    CONF_NETWORK,
+    CONF_NETWORK2,
+    ATTR_INTENSITY,
+    ATTR_POWER_MODE,
+    ATTR_SETPOINT_MODE,
+    ATTR_ROOM_SETPOINT,
+    ATTR_SIGNATURE,
+)
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
 VERSION = '1.2.5'
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +49,9 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period
     })
-}, extra=vol.ALLOW_EXTRA)
+}, 
+    extra=vol.ALLOW_EXTRA,
+)
 
 def setup(hass, hass_config):
     """Set up neviweb."""
