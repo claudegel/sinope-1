@@ -19,6 +19,26 @@ from homeassistant.components.light import (
     SUPPORT_BRIGHTNESS,
 )
 
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+)
+
+from homeassistant.helpers import (
+    config_validation as cv,
+    discovery,
+    entity_platform,
+    service,
+)
+
+from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.helpers import (
+    entity_platform,
+    service,
+    entity_component,
+    entity_registry,
+    device_registry,
+)
+
 from datetime import timedelta
 from .const import (
     DOMAIN,
@@ -32,8 +52,15 @@ from .const import (
     ATTR_TIMER,
     ATTR_LED_ON,
     ATTR_LED_OFF,
+    ATTR_STATE,
+    ATTR_RED,
+    ATTR_GREEN,
+    ATTR_BLUE,
     MODE_AUTO,
     MODE_MANUAL,
+    SERVICE_SET_LED_INDICATOR,
+    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_TIMER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,16 +84,53 @@ DEVICE_TYPE_DIMMER = [112]
 DEVICE_TYPE_LIGHT = [102]
 IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 
+SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_KEYPAD): cv.string,
+    }
+)
+
+SET_TIMER_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_TIMER): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+    }
+)
+
+SET_LED_INDICATOR_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_STATE): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=1)
+         ),
+         vol.Required(ATTR_INTENSITY): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=100)
+         ),
+         vol.Required(ATTR_RED): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+         vol.Required(ATTR_GREEN): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+         vol.Required(ATTR_BLUE): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+    }
+)
+
 async def async_setup_platform(
-    hass,
-    config,
+    hass: HomeAssistantType,
+    config_entry,
     async_add_entities,
-    discovery_info=None,
-):
+    discovery_info = None,
+) -> None:
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
     
-    devices = []
+    entities = []
     for device_info in data.neviweb_client.gateway_data:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
@@ -74,7 +138,7 @@ async def async_setup_platform(
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
                 "dimmer" if device_info["signature"]["type"] in DEVICE_TYPE_DIMMER 
                 else "light", device_info["name"])
-            devices.append(NeviwebLight(data, device_info, device_name))
+            entities.append(NeviwebLight(data, device_info, device_name))
     for device_info in data.neviweb_client.gateway_data2:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
@@ -82,9 +146,63 @@ async def async_setup_platform(
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
                 "dimmer" if device_info["signature"]["type"] in DEVICE_TYPE_DIMMER 
                 else "light", device_info["name"])
-            devices.append(NeviwebLight(data, device_info, device_name))
+            entities.append(NeviwebLight(data, device_info, device_name))
             
-    async_add_entities(devices, True)
+    async_add_entities(entities, True)
+
+    def set_keypad_lock_service(service):
+        """ lock/unlock keypad device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
+                light.set_keypad_lock(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    def set_timer_service(service):
+        """ set timer for light device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "time": service.data[ATTR_TIMER]}
+                light.set_timer(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    def set_led_indicator_service(service):
+        """ lock/unlock keypad device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "state": service.data[ATTR_STATE], "intensity": service.data[ATTR_INTENSITY], "red": service.data[ATTR_RED], "green": service.data[ATTR_GREEN], "blue": service.data[ATTR_BLUE]}
+                light.set_led_indicator(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_KEYPAD_LOCK,
+        set_keypad_lock_service,
+        schema=SET_KEYPAD_LOCK_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_TIMER,
+        set_timer_service,
+        schema=SET_TIMER_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LED_INDICATOR,
+        set_led_indicator_service,
+        schema=SET_LED_INDICATOR_SCHEMA,
+    )
 
 def brightness_to_percentage(brightness):
     """Convert brightness from absolute 0..255 to percentage."""
@@ -225,6 +343,43 @@ class NeviwebLight(LightEntity):
         """Turn the light off."""
         self._client.set_brightness(self._id, 0)
  
+    def set_keypad_lock(self, value):
+        """Lock or unlock device's keypad, True = lock, False = unlock"""
+        lock = value["lock"]
+        entity = value["id"]
+        if lock == "lock":
+            lock_commande = "locked"
+            lock_name = "Locked"
+        else:
+            lock_commande = "unlocked"
+            lock_name = "Unlocked"
+        self._client.set_keypad_lock(
+            entity, lock_commande)
+        self._keypad = lock_name
+
+    def set_timer(self, value):
+        """Set device timer, 0 = off, 1 to 255 = timer length"""
+        time = value["time"]
+        entity = value["id"]
+        self._client.set_timer(
+            entity, time)
+        self._timer = time
+
+    def set_led_indicator(self, value):
+        """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100"""
+        state = value["state"]
+        entity = value["id"]
+        intensity = value["intensity"]
+        red = value["red"]
+        green = value["green"]
+        blue = value["blue"]
+        self._client.set_led_indicator(
+            entity, state, intensity, red, green, blue)
+        if state == 0:
+            self._led_off = str(value["intensity"])+","+str(value["red"])+","+str(value["green"])+","+str(value["blue"])
+        else:
+            self._led_on = str(value["intensity"])+","+str(value["red"])+","+str(value["green"])+","+str(value["blue"])
+
     @property
     def operation_mode(self):
         return self._operation_mode
