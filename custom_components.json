@@ -9,7 +9,8 @@
             "https://github.com/claudegel/sinope-1/tree/master/custom_components/neviweb/light.py",
             "https://github.com/claudegel/sinope-1/tree/master/custom_components/neviweb/climate.py",
             "https://github.com/claudegel/sinope-1/tree/master/custom_components/neviweb/switch.py",
-            "https://github.com/claudegel/sinope-1/tree/master/custom_components/neviweb/const.py"
+            "https://github.com/claudegel/sinope-1/tree/master/custom_components/neviweb/const.py",
+            "https://github.com/claudegel/sinope-1/tree/master/custom_components/neviweb/services.yaml",
         ]
     }
 }

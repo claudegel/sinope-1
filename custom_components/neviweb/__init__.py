@@ -23,11 +23,16 @@ from .const import (
     ATTR_POWER_MODE,
     ATTR_SETPOINT_MODE,
     ATTR_ROOM_SETPOINT,
+    ATTR_KEYPAD,
+    ATTR_LED_ON,
+    ATTR_LED_OFF,
+    ATTR_TIMER,
+    ATTR_DISPLAY_2,
     ATTR_SIGNATURE,
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.3.0'
+VERSION = '1.4.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -317,6 +322,33 @@ class NeviwebClient(object):
     def set_temperature(self, device_id, temperature):
         """Set device temperature."""
         data = {ATTR_ROOM_SETPOINT: temperature}
+        self.set_device_attributes(device_id, data)
+
+    def set_keypad_lock(self, device_id, lock):
+        """Set device keyboard locked/unlocked."""
+        data = {ATTR_KEYPAD: lock}
+        _LOGGER.debug("lock.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_timer(self, device_id, time):
+        """Set device keyboard locked/unlocked."""
+        data = {ATTR_TIMER: time}
+        _LOGGER.debug("time.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_second_display(self, device_id, display):
+        """Set device keyboard locked/unlocked."""
+        data = {ATTR_DISPLAY_2: display}
+        _LOGGER.debug("display.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_led_indicator(self, device_id, state, intensity, red, green, blue):
+        """Set devive led indicator intensity and color for on and off state"""
+        if state == 1:
+            data = {ATTR_LED_ON:{"intensity":intensity,"red":red,"green":green,"blue":blue}}
+        else:
+            data = {ATTR_LED_OFF:{"intensity":intensity,"red":red,"green":green,"blue":blue}}
+        _LOGGER.debug("led.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):

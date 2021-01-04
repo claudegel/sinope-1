@@ -34,10 +34,27 @@ from homeassistant.components.climate.const import (
 )
 
 from homeassistant.const import (
+    ATTR_ENTITY_ID,
     DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE,
+)
+
+from homeassistant.helpers import (
+    config_validation as cv,
+    discovery,
+    entity_platform,
+    service,
+)
+
+from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.helpers import (
+    entity_platform,
+    service,
+    entity_component,
+    entity_registry,
+    device_registry,
 )
 
 from datetime import timedelta
@@ -57,11 +74,15 @@ from .const import (
     ATTR_EARLY_START,
     ATTR_KEYPAD,
     ATTR_DISPLAY_2,
+    ATTR_BACKLIGHT,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
     MODE_OFF,
     MODE_AWAY,
+    SERVICE_SET_SECOND_DISPLAY,
+    SERVICE_SET_BACKLIGHT_IDLE,
+    SERVICE_SET_KEYPAD_LOCK,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -83,6 +104,7 @@ UPDATE_ATTRIBUTES = [
     ATTR_EARLY_START,
     ATTR_KEYPAD,
     ATTR_DISPLAY_2,
+    ATTR_BACKLIGHT,
 ]
 
 SUPPORTED_HVAC_MODES = [
@@ -102,6 +124,29 @@ IMPLEMENTED_LOW_VOLTAGE = [21]
 IMPLEMENTED_THERMOSTAT = [10, 20]
 IMPLEMENTED_DEVICE_TYPES = IMPLEMENTED_THERMOSTAT + IMPLEMENTED_LOW_VOLTAGE
 
+SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_DISPLAY_2): cv.string,
+    }
+)
+
+SET_BACKLIGHT_IDLE_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_BACKLIGHT): vol.All(
+             vol.Coerce(float), vol.Range(min=0, max=100)
+         ),
+    }
+)
+
+SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_KEYPAD): cv.string,
+    }
+)
+
 async def async_setup_platform(
     hass,
     config,
@@ -111,21 +156,75 @@ async def async_setup_platform(
     """Set up the neviweb thermostats."""
     data = hass.data[DOMAIN]
     
-    devices = []
+    entities = []
     for device_info in data.neviweb_client.gateway_data:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
             device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            devices.append(NeviwebThermostat(data, device_info, device_name))
+            entities.append(NeviwebThermostat(data, device_info, device_name))
     for device_info in data.neviweb_client.gateway_data2:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
             device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            devices.append(NeviwebThermostat(data, device_info, device_name))
+            entities.append(NeviwebThermostat(data, device_info, device_name))
             
-    async_add_entities(devices, True)
+    async_add_entities(entities, True)
+
+    def set_second_display_service(service):
+        """Set to outside or setpoint temperature display"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "display": service.data[ATTR_DISPLAY_2]}
+                thermostat.set_second_display(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_backlight_idle_service(service):
+        """Set to outside or setpoint temperature display"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "level": service.data[ATTR_BACKLIGHT]}
+                thermostat.set_backlight_idle(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_keypad_lock_service(service):
+        """ lock/unlock keypad device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
+                light.set_keypad_lock(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SECOND_DISPLAY,
+        set_second_display_service,
+        schema=SET_SECOND_DISPLAY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BACKLIGHT_IDLE,
+        set_backlight_idle_service,
+        schema=SET_BACKLIGHT_IDLE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_KEYPAD_LOCK,
+        set_keypad_lock_service,
+        schema=SET_KEYPAD_LOCK_SCHEMA,
+    )
 
 class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
@@ -149,6 +248,7 @@ class NeviwebThermostat(ClimateEntity):
         self._away_temp = None
         self._keypad = "Unlocked"
         self._display_2 = None
+        self._backlight_idle = None
         self._is_low_voltage = device_info["signature"]["type"] in \
             IMPLEMENTED_LOW_VOLTAGE
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -184,6 +284,7 @@ class NeviwebThermostat(ClimateEntity):
                 self._early_start = device_data[ATTR_EARLY_START]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._display_2 = device_data[ATTR_DISPLAY_2]
+                self._backlight_idle = device_data[ATTR_BACKLIGHT]
                 if not self._is_low_voltage:
                     self._wattage = device_data[ATTR_WATTAGE]["value"]
                 return
@@ -238,6 +339,7 @@ class NeviwebThermostat(ClimateEntity):
                       'away_temp': self._away_temp,
                       'early_start': self._early_start,
                       'sec._display': self._display_2,
+                      'backlight_idle': self._backlight_idle,
                       'id': self._id})
         return data
 
@@ -318,6 +420,44 @@ class NeviwebThermostat(ClimateEntity):
             return
         self._client.set_temperature(self._id, temperature)
         self._target_temp = temperature
+
+    def set_second_display(self, value):
+        """Set thermostat second display between outside and setpoint temperature"""
+        display = value["display"]
+        entity = value["id"]
+        if display == "outsideTemperature":
+            display_name = "Outside"
+        else:
+            display_name = "Setpoint"
+        self._client.set_second_display(
+            entity, display)
+        self._display_2 = display_name
+
+    def set_backlight_idle(self, value):
+        """Set thermostat backlight intensity when idle, 0 = off, 1 to 100 = intensity %"""
+        level = value["level"]
+        entity = value["id"]
+        if level == 0:
+            level_name = "Off"
+        else:
+            level_name = str(level)
+        self._client.set_second_display(
+            entity, level)
+        self._backlight_idle = level_name
+
+    def set_keypad_lock(self, value):
+        """Lock or unlock device's keypad, True = lock, False = unlock"""
+        lock = value["lock"]
+        entity = value["id"]
+        if lock == "lock":
+            lock_commande = "locked"
+            lock_name = "Locked"
+        else:
+            lock_commande = "unlocked"
+            lock_name = "Unlocked"
+        self._client.set_keypad_lock(
+            entity, lock_commande)
+        self._keypad = lock_name
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
