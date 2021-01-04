@@ -18,7 +18,24 @@ from homeassistant.components.switch import (
 )
 
 from homeassistant.const import (
+    ATTR_ENTITY_ID,
     DEVICE_CLASS_POWER,
+)
+
+from homeassistant.helpers import (
+    config_validation as cv,
+    discovery,
+    entity_platform,
+    service,
+)
+
+from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.helpers import (
+    entity_platform,
+    service,
+    entity_component,
+    entity_registry,
+    device_registry,
 )
 
 from datetime import timedelta
@@ -30,12 +47,14 @@ from .const import (
     ATTR_RSSI,
     ATTR_WATTAGE,
     ATTR_WATTAGE_INSTANT,
+    ATTR_KEYPAD,
     ATTR_TIMER,
     ATTR_OCCUPANCY,
     ATTR_AWAY_MODE,
-    ATTR_KEYPAD,
     MODE_AUTO,
     MODE_MANUAL,
+    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_TIMER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,6 +75,22 @@ UPDATE_ATTRIBUTES = [
 
 IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
+SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_KEYPAD): cv.string,
+    }
+)
+
+SET_TIMER_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_TIMER): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+    }
+)
+
 async def async_setup_platform(
     hass,
     config,
@@ -65,21 +100,57 @@ async def async_setup_platform(
     """Set up the Neviweb switch."""
     data = hass.data[DOMAIN]
     
-    devices = []
+    entities = []
     for device_info in data.neviweb_client.gateway_data:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
             device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
-            devices.append(NeviwebSwitch(data, device_info, device_name))
+            entities.append(NeviwebSwitch(data, device_info, device_name))
     for device_info in data.neviweb_client.gateway_data2:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
             device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
-            devices.append(NeviwebSwitch(data, device_info, device_name))
+            entities.append(NeviwebSwitch(data, device_info, device_name))
             
-    async_add_entities(devices, True)
+    async_add_entities(entities, True)
+
+    def set_keypad_lock_service(service):
+        """ lock/unlock keypad device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
+                light.set_keypad_lock(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    def set_timer_service(service):
+        """ set timer for light device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "time": service.data[ATTR_TIMER]}
+                light.set_timer(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_KEYPAD_LOCK,
+        set_keypad_lock_service,
+        schema=SET_KEYPAD_LOCK_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_TIMER,
+        set_timer_service,
+        schema=SET_TIMER_SCHEMA,
+    )
 
 class NeviwebSwitch(SwitchEntity):
     """Implementation of a Neviweb switch."""
@@ -205,3 +276,25 @@ class NeviwebSwitch(SwitchEntity):
     def is_standby(self):
         """Return true if device is in standby."""
         return self._current_power_w == 0
+
+    def set_keypad_lock(self, value):
+        """Lock or unlock device's keypad, True = lock, False = unlock"""
+        lock = value["lock"]
+        entity = value["id"]
+        if lock == "lock":
+            lock_commande = "locked"
+            lock_name = "Locked"
+        else:
+            lock_commande = "unlocked"
+            lock_name = "Unlocked"
+        self._client.set_keypad_lock(
+            entity, lock_commande)
+        self._keypad = lock_name
+
+    def set_timer(self, value):
+        """Set device timer, 0 = off, 1 to 255 = timer length"""
+        time = value["time"]
+        entity = value["id"]
+        self._client.set_timer(
+            entity, time)
+        self._timer = time
