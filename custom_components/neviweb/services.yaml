@@ -1,0 +1,61 @@
+set_keypad_lock:
+  description: Lock or unlock device keypad. Work on climate, light, dimmer and switch.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device to lock/unlock the keypad.
+      example: "climate.neviweb_climate_office"
+    lockKeypad:
+      description: lockKeypad status to set lock = locked, unlock = unlocked.
+      example: "lock"
+
+set_timer:
+  description: Set device timer, 0 = off, 1 to 255 = timer length. Devices will turn_off after that delay.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device to lock/unlock the keypad.
+      example: "light.neviweb_light_office"
+    powerTimer:
+      description: Time to set, 0 = no timer, 1 to 255 = timer length in minutes.
+      example: 10
+
+set_led_indicator:
+  description: Set led indicator intensity an color for each light state, on/off.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device to set the second display.
+      example: "light.neviweb_light_office"
+    state:
+      description: 0 = when light is «off», 1 = when light is «on»
+      example: 1
+    intensity:
+      description: 0 = off, 1 to 100 intensity.
+      example: 50
+    red:
+      description: 0 to 255 RGB reb color indice.
+      example: 25
+    green:
+      description: 0 to 255 RGB green color indice.
+      example: 25
+    blue:
+      description: 0 to 255 RGB blue color indice.
+      example: 255
+
+set_second_display:
+  description: Set the second neviweb thermostat display to show setpoint or outside temperature.
+  fields:
+    entity_id:
+      description: Name(s) of device to set the second display.
+      example: "climate.sinope_climate_office"
+    secondaryDisplay:
+      description: outsideTemperature = outside temperature display, default = setpoint display.
+      example: "outsideTemperature"
+
+set_backlight_idle:
+  description: Set backlight intensity when idle, 0 = off, 1 to 100 = intensity %.
+  fields:
+    entity_id:
+      description: Name(s) of device to set the second display.
+      example: "climate.sinope_climate_office"
+    backlightIntensityIdle:
+      description: 0 = off, 1 to 100 intensity.
+      example: 100
