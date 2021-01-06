@@ -18,6 +18,16 @@ set_timer:
       description: Time to set, 0 = no timer, 1 to 255 = timer length in minutes.
       example: 10
 
+set_early_start:
+  description: Set heating early start on/off. Work on climate devices.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device to set early start.
+      example: "climate.neviweb_climate_office"
+    earlyStart:
+      description: earlyStart status to set on/off.
+      example: "on"
+
 set_led_indicator:
   description: Set led indicator intensity an color for each light state, on/off.
   fields:
