@@ -27,12 +27,13 @@ from .const import (
     ATTR_LED_ON,
     ATTR_LED_OFF,
     ATTR_TIMER,
+    ATTR_EARLY_START,
     ATTR_DISPLAY_2,
     ATTR_SIGNATURE,
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.4.0'
+VERSION = '1.4.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -328,6 +329,12 @@ class NeviwebClient(object):
         """Set device keyboard locked/unlocked."""
         data = {ATTR_KEYPAD: lock}
         _LOGGER.debug("lock.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_early_start(self, device_id, start):
+        """Set device early start heating on / off."""
+        data = {ATTR_EARLY_START: start}
+        _LOGGER.debug("start.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_timer(self, device_id, time):

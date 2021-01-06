@@ -173,7 +173,7 @@ async def async_setup_platform(
                 break
 
     def set_led_indicator_service(service):
-        """ lock/unlock keypad device"""
+        """ set led color and intensity for light indicator """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
