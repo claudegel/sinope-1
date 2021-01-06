@@ -300,7 +300,10 @@ class NeviwebThermostat(ClimateEntity):
                     device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
                 self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) if \
                     device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
-                self._away_temp = float(device_data[ATTR_AWAY_SETPOINT])
+                if ATTR_AWAY_SETPOINT in device_data:
+                    self._away_temp = float(device_data[ATTR_AWAY_SETPOINT])
+                else:
+                    _LOGGER.debug("Attribute roomSetpointAway is missing: %s", device_data)
                 self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                 self._alarm = device_data[ATTR_ALARM]["type"]
                 self._rssi = device_data[ATTR_RSSI]
@@ -310,8 +313,10 @@ class NeviwebThermostat(ClimateEntity):
                 self._early_start = device_data[ATTR_EARLY_START]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._display_2 = device_data[ATTR_DISPLAY_2]
-                if device_data[ATTR_BACKLIGHT] is not None:
+                if ATTR_BACKLIGHT in device_data:
                     self._backlight_idle = device_data[ATTR_BACKLIGHT]
+                else:
+                    _LOGGER.debug("Attribute backlightIntensityIdle is missing: %s", device_data)
                 if not self._is_low_voltage:
                     self._wattage = device_data[ATTR_WATTAGE]["value"]
                 return
@@ -363,7 +368,7 @@ class NeviwebThermostat(ClimateEntity):
                       'rssi': self._rssi,
                       'alarm': self._alarm,
                       'keypad': self._keypad,
-                      'away_temp': self._away_temp,
+                      'away_setpoint': self._away_temp,
                       'early_start': self._early_start,
                       'sec._display': self._display_2,
                       'backlight_idle': self._backlight_idle,
