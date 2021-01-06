@@ -308,8 +308,8 @@ class NeviwebThermostat(ClimateEntity):
                 self._alarm = device_data[ATTR_ALARM]["type"]
                 self._rssi = device_data[ATTR_RSSI]
                 self._operation_mode = device_data[ATTR_SETPOINT_MODE]
-                self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
-                self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
+                self._min_temp = float(device_data[ATTR_ROOM_SETPOINT_MIN])
+                self._max_temp = float(device_data[ATTR_ROOM_SETPOINT_MAX])
                 self._early_start = device_data[ATTR_EARLY_START]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._display_2 = device_data[ATTR_DISPLAY_2]
