@@ -147,6 +147,13 @@ SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
     }
 )
 
+SET_EARLY_START_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_EARLY_START): cv.string,
+    }
+)
+
 async def async_setup_platform(
     hass,
     config,
@@ -198,11 +205,22 @@ async def async_setup_platform(
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
-                light.set_keypad_lock(value)
-                light.schedule_update_ha_state(True)
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "lock": service.data[ATTR_KEYPAD]}
+                thermostat.set_keypad_lock(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_early_start_service(service):
+        """ lock/unlock keypad device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "start": service.data[ATTR_EARLY_START]}
+                thermostat.set_early_start(value)
+                thermostat.schedule_update_ha_state(True)
                 break
 
     hass.services.async_register(
@@ -224,6 +242,13 @@ async def async_setup_platform(
         SERVICE_SET_KEYPAD_LOCK,
         set_keypad_lock_service,
         schema=SET_KEYPAD_LOCK_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_EARLY_START,
+        set_early_start_service,
+        schema=SET_EARLY_START_SCHEMA,
     )
 
 class NeviwebThermostat(ClimateEntity):
@@ -284,7 +309,8 @@ class NeviwebThermostat(ClimateEntity):
                 self._early_start = device_data[ATTR_EARLY_START]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._display_2 = device_data[ATTR_DISPLAY_2]
-                self._backlight_idle = device_data[ATTR_BACKLIGHT]
+                if device_data[ATTR_BACKLIGHT] is not None:
+                    self._backlight_idle = device_data[ATTR_BACKLIGHT]
                 if not self._is_low_voltage:
                     self._wattage = device_data[ATTR_WATTAGE]["value"]
                 return
@@ -458,6 +484,14 @@ class NeviwebThermostat(ClimateEntity):
         self._client.set_keypad_lock(
             entity, lock_commande)
         self._keypad = lock_name
+
+    def set_early_start(self, value):
+        """set early start heating for thermostat, On = early start set to on, Off = set to Off"""
+        start = value["start"]
+        entity = value["id"]
+        self._client.set_early_start(
+            entity, start)
+        self._early_start = start
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
