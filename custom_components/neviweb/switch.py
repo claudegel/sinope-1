@@ -120,22 +120,22 @@ async def async_setup_platform(
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
-                light.set_keypad_lock(value)
-                light.schedule_update_ha_state(True)
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
+                switch.set_keypad_lock(value)
+                switch.schedule_update_ha_state(True)
                 break
 
     def set_timer_service(service):
-        """ set timer for light device"""
+        """ set timer for switch device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {"id": light.unique_id, "time": service.data[ATTR_TIMER]}
-                light.set_timer(value)
-                light.schedule_update_ha_state(True)
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER]}
+                switch.set_timer(value)
+                switch.schedule_update_ha_state(True)
                 break
 
     hass.services.async_register(
