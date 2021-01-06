@@ -83,6 +83,7 @@ from .const import (
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_BACKLIGHT_IDLE,
     SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_EARLY_START,
 )
 
 _LOGGER = logging.getLogger(__name__)
