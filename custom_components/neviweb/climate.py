@@ -469,13 +469,9 @@ class NeviwebThermostat(ClimateEntity):
         """Set thermostat backlight intensity when idle, 0 = off, 1 to 100 = intensity %"""
         level = value["level"]
         entity = value["id"]
-        if level == 0:
-            level_name = "Off"
-        else:
-            level_name = str(level)
-        self._client.set_second_display(
+        self._client.set_backlight_idle(
             entity, level)
-        self._backlight_idle = level_name
+        self._backlight_idle = level
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, True = lock, False = unlock"""
