@@ -29,11 +29,13 @@ from .const import (
     ATTR_TIMER,
     ATTR_EARLY_START,
     ATTR_DISPLAY_2,
+    ATTR_WATTAGE_OVERRIDE,
+    ATTR_BACKLIGHT,
     ATTR_SIGNATURE,
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.4.2'
+VERSION = '1.4.3'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -356,6 +358,12 @@ class NeviwebClient(object):
         else:
             data = {ATTR_LED_OFF:{"intensity":intensity,"red":red,"green":green,"blue":blue}}
         _LOGGER.debug("led.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_backlight_idle(self, device_id, level):
+        """ Set backlight intensity when idle """
+        data = {ATTR_BACKLIGHT: level}
+        _LOGGER.debug("backlight.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
