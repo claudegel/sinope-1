@@ -55,7 +55,7 @@ set_second_display:
   fields:
     entity_id:
       description: Name(s) of device to set the second display.
-      example: "climate.sinope_climate_office"
+      example: "climate.neviweb_climate_office"
     secondaryDisplay:
       description: outsideTemperature = outside temperature display, default = setpoint display.
       example: "outsideTemperature"
@@ -65,7 +65,7 @@ set_backlight_idle:
   fields:
     entity_id:
       description: Name(s) of device to set the second display.
-      example: "climate.sinope_climate_office"
+      example: "climate.neviweb_climate_office"
     backlightIntensityIdle:
       description: 0 = off, 1 to 100 intensity.
       example: 100
