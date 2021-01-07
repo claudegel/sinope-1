@@ -340,13 +340,13 @@ class NeviwebClient(object):
         self.set_device_attributes(device_id, data)
 
     def set_timer(self, device_id, time):
-        """Set device keyboard locked/unlocked."""
+        """Set device auto off timer."""
         data = {ATTR_TIMER: time}
         _LOGGER.debug("time.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_second_display(self, device_id, display):
-        """Set device keyboard locked/unlocked."""
+        """Set device second display for outside temperature or setpoint temperature."""
         data = {ATTR_DISPLAY_2: display}
         _LOGGER.debug("display.data = %s", data)
         self.set_device_attributes(device_id, data)
