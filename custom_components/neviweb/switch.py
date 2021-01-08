@@ -278,7 +278,7 @@ class NeviwebSwitch(SwitchEntity):
         return self._current_power_w == 0
 
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, True = lock, False = unlock"""
+        """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
         lock = value["lock"]
         entity = value["id"]
         if lock == "lock":
