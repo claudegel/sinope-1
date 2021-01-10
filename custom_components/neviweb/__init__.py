@@ -23,10 +23,14 @@ from .const import (
     ATTR_POWER_MODE,
     ATTR_SETPOINT_MODE,
     ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_SETPOINT_MAX,
     ATTR_KEYPAD,
     ATTR_LED_ON,
     ATTR_LED_OFF,
     ATTR_TIMER,
+    ATTR_TIME,
+    ATTR_TEMP,
     ATTR_EARLY_START,
     ATTR_DISPLAY_2,
     ATTR_WATTAGE_OVERRIDE,
@@ -35,7 +39,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.4.3'
+VERSION = '1.5.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -342,13 +346,31 @@ class NeviwebClient(object):
     def set_timer(self, device_id, time):
         """Set device auto off timer."""
         data = {ATTR_TIMER: time}
-        _LOGGER.debug("time.data = %s", data)
+        _LOGGER.debug("timer.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_wattage(self, device_id, watt):
+        """Set light and dimmer wattageOverride value."""
+        data = {ATTR_WATTAGE_OVERRIDE: watt}
+        _LOGGER.debug("wattage.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_second_display(self, device_id, display):
         """Set device second display for outside temperature or setpoint temperature."""
         data = {ATTR_DISPLAY_2: display}
         _LOGGER.debug("display.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_time_format(self, device_id, time):
+        """Set device time format 12h or 24h."""
+        data = {ATTR_TIME: time}
+        _LOGGER.debug("time.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_temperature_format(self, device_id, temp):
+        """Set device temperature format: celsius or fahrenheit."""
+        data = {ATTR_TEMP: temp}
+        _LOGGER.debug("temperature.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
@@ -360,10 +382,22 @@ class NeviwebClient(object):
         _LOGGER.debug("led.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_backlight_idle(self, device_id, level):
+    def set_backlight(self, device_id, level):
         """ Set backlight intensity when idle """
         data = {ATTR_BACKLIGHT: level}
         _LOGGER.debug("backlight.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_setpoint_min(self, device_id, temp):
+        """Set device setpoint minimum temperature."""
+        data = {ATTR_ROOM_SETPOINT_MIN: temp}
+        _LOGGER.debug("setpointMin.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_setpoint_max(self, device_id, temp):
+        """Set device setpoint maximum temperature."""
+        data = {ATTR_ROOM_SETPOINT_MAX: temp}
+        _LOGGER.debug("setpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
