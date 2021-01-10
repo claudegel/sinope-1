@@ -25,18 +25,14 @@ from homeassistant.const import (
 from homeassistant.helpers import (
     config_validation as cv,
     discovery,
-    entity_platform,
     service,
-)
-
-from homeassistant.helpers.typing import HomeAssistantType
-from homeassistant.helpers import (
     entity_platform,
-    service,
     entity_component,
     entity_registry,
     device_registry,
 )
+
+from homeassistant.helpers.typing import HomeAssistantType
 
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
@@ -86,7 +82,7 @@ SET_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_TIMER): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=255)
+             vol.Coerce(int), vol.Range(min=0, max=10800)
          ),
     }
 )
@@ -169,7 +165,7 @@ class NeviwebSwitch(SwitchEntity):
         self._timer = 0
         self._occupancy = None
         self._away_mode = None
-        self._keypad = "Unlocked"
+        self._keypad = "unlocked"
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -196,7 +192,7 @@ class NeviwebSwitch(SwitchEntity):
                 self._away_mode = device_data[ATTR_AWAY_MODE]["value"]["action"]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._today_energy_kwh = device_daily_stats[0] / 1000 if \
-                    device_daily_stats[0] is not None else 0
+                    device_daily_stats is not None else 0
                 return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
@@ -281,18 +277,12 @@ class NeviwebSwitch(SwitchEntity):
         """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
         lock = value["lock"]
         entity = value["id"]
-        if lock == "lock":
-            lock_commande = "locked"
-            lock_name = "Locked"
-        else:
-            lock_commande = "unlocked"
-            lock_name = "Unlocked"
         self._client.set_keypad_lock(
-            entity, lock_commande)
-        self._keypad = lock_name
+            entity, lock)
+        self._keypad = lock
 
     def set_timer(self, value):
-        """Set device timer, 0 = off, 1 to 255 = timer length"""
+        """Set device timer, 0 = off, 1 to 10800 seconds = timer length"""
         time = value["time"]
         entity = value["id"]
         self._client.set_timer(
