@@ -5,18 +5,38 @@ set_keypad_lock:
       description: Name(s) of neviweb device to lock/unlock the keypad.
       example: "climate.neviweb_climate_office"
     lockKeypad:
-      description: lockKeypad status to set lock = locked, unlock = unlocked.
-      example: "lock"
+      description: Device keypad status to set «locked» = Locked, «unlocked» = Unlocked.
+      example: "locked"
 
 set_timer:
-  description: Set device timer, 0 = off, 1 to 255 = timer length. Devices will turn_off after that delay.
+  description: Set device timer, 0 = off, 1 to 10800 seconds = timer length. Devices will turn_off after that delay.
   fields:
     entity_id:
-      description: Name(s) of neviweb device to lock/unlock the keypad.
+      description: Name(s) of neviweb device to set the timer (light or switch).
       example: "light.neviweb_light_office"
     powerTimer:
-      description: Time to set, 0 = no timer, 1 to 255 = timer length in minutes.
-      example: 10
+      description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
+      example: 60
+
+set_time_format:
+  description: Set device time format 12h or 24h.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device to set time format.
+      example: "climate.neviweb_climate_office"
+    timeFormat:
+      description: Time format to set, 12  or 24.
+      example: 24
+
+set_temperature_format:
+  description: Set device temperature format, celsius or fahrenheit.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device to set temperature format.
+      example: "climate.neviweb_climate_office"
+    temperatureFormat:
+      description: Temperature format to set, «celsius» or «fahrenheit».
+      example: "celsius"
 
 set_early_start:
   description: Set heating early start on/off. Work on climate devices.
@@ -25,14 +45,14 @@ set_early_start:
       description: Name(s) of neviweb device to set early start.
       example: "climate.neviweb_climate_office"
     earlyStart:
-      description: earlyStart status to set on/off.
+      description: «on» or «off», earlyStart status to set on/off.
       example: "on"
 
 set_led_indicator:
-  description: Set led indicator intensity an color for each light state, on/off.
+  description: Set led indicator intensity an color, for each light state, on/off.
   fields:
     entity_id:
-      description: Name(s) of neviweb device to set the second display.
+      description: Name(s) of neviweb light device to set the led color and intensity.
       example: "light.neviweb_light_office"
     state:
       description: 0 = when light is «off», 1 = when light is «on»
@@ -51,21 +71,51 @@ set_led_indicator:
       example: 255
 
 set_second_display:
-  description: Set the second neviweb thermostat display to show setpoint or outside temperature.
+  description: Set the second miwi thermostat display to show setpoint or outside temperature.
   fields:
     entity_id:
       description: Name(s) of device to set the second display.
-      example: "climate.sinope_climate_office"
+      example: "climate.neviweb_climate_office"
     secondaryDisplay:
-      description: outsideTemperature = outside temperature display, default = setpoint display.
+      description: «outsideTemperature» = outside temperature display, «default» = setpoint display.
       example: "outsideTemperature"
 
-set_backlight_idle:
-  description: Set backlight intensity when idle, 0 = off, 1 to 100 = intensity %.
+set_backlight:
+  description: Set backlight intensity when idle, 0 = off when idle , on when active, 100 = always on.
   fields:
     entity_id:
       description: Name(s) of device to set the second display.
-      example: "climate.sinope_climate_office"
+      example: "climate.neviweb_climate_office"
     backlightIntensityIdle:
-      description: 0 = off, 1 to 100 intensity.
+      description: 0 = off when idle, 100 always on.
       example: 100
+
+set_wattage:
+  description: Set device wattageOverride value for light 0-1800w, and dimmer 0-600w.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device to set the wattageOverride (light or dimmer).
+      example: "light.neviweb_light_office"
+    wattageOverride:
+      description: wattage to set, 0-1800w light, 0-600w dimmer.
+      example: 250
+
+set_setpoint_max:
+  description: Set climate device room setpoint max temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device thermostat.
+      example: "climate.neviweb_climate_office"
+    roomSetpointMax:
+      description: setpoint maximum temperature to set.
+      example: 25
+
+set_setpoint_min:
+  description: Set climate device room setpoint min temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device thermostat.
+      example: "climate.neviweb_climate_office"
+    roomSetpointMin:
+      description: setpoint minimum temperature to set.
+      example: 10

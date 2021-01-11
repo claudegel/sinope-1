@@ -26,18 +26,14 @@ from homeassistant.const import (
 from homeassistant.helpers import (
     config_validation as cv,
     discovery,
-    entity_platform,
     service,
-)
-
-from homeassistant.helpers.typing import HomeAssistantType
-from homeassistant.helpers import (
     entity_platform,
-    service,
     entity_component,
     entity_registry,
     device_registry,
 )
+
+from homeassistant.helpers.typing import HomeAssistantType
 
 from datetime import timedelta
 from .const import (
@@ -61,6 +57,7 @@ from .const import (
     SERVICE_SET_LED_INDICATOR,
     SERVICE_SET_KEYPAD_LOCK,
     SERVICE_SET_TIMER,
+    SERVICE_SET_WATTAGE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -95,7 +92,16 @@ SET_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_TIMER): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=255)
+             vol.Coerce(int), vol.Range(min=0, max=10800)
+         ),
+    }
+)
+
+SET_WATTAGE_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_WATTAGE_OVERRIDE): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=1800)
          ),
     }
 )
@@ -151,7 +157,7 @@ async def async_setup_platform(
     async_add_entities(entities, True)
 
     def set_keypad_lock_service(service):
-        """ lock/unlock keypad device"""
+        """ lock/unlock keypad device """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -162,13 +168,24 @@ async def async_setup_platform(
                 break
 
     def set_timer_service(service):
-        """ set timer for light device"""
+        """ set timer for light device """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {"id": light.unique_id, "time": service.data[ATTR_TIMER]}
                 light.set_timer(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    def set_wattage_service(service):
+        """ set wattageOverride value for light device, 0-1800w for switch, 0-600w for dimmer"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "watt": service.data[ATTR_WATTAGE_OVERRIDE]}
+                light.set_wattage(value)
                 light.schedule_update_ha_state(True)
                 break
 
@@ -195,6 +212,13 @@ async def async_setup_platform(
         SERVICE_SET_TIMER,
         set_timer_service,
         schema=SET_TIMER_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_WATTAGE,
+        set_wattage_service,
+        schema=SET_WATTAGE_SCHEMA,
     )
 
     hass.services.async_register(
@@ -226,7 +250,7 @@ class NeviwebLight(LightEntity):
         self._rssi = None
         self._occupancy = None
         self._away_mode = None
-        self._keypad = "Unlocked"
+        self._keypad = "unlocked"
         self._timer = 0
         self._led_on = "0,0,0,0"
         self._led_off = "0,0,0,0"
@@ -344,26 +368,30 @@ class NeviwebLight(LightEntity):
         self._client.set_brightness(self._id, 0)
  
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, True = lock, False = unlock"""
+        """Lock or unlock device's keypad, «locked» = locked, «unlocked» = unlocked"""
         lock = value["lock"]
         entity = value["id"]
-        if lock == "lock":
-            lock_commande = "locked"
-            lock_name = "Locked"
-        else:
-            lock_commande = "unlocked"
-            lock_name = "Unlocked"
+        _LOGGER.debug("keypad.data.value = %s",value)
         self._client.set_keypad_lock(
-            entity, lock_commande)
-        self._keypad = lock_name
+            entity, lock)
+        self._keypad = lock
 
     def set_timer(self, value):
-        """Set device timer, 0 = off, 1 to 255 = timer length"""
+        """ Set device timer, 0 = off, 1 to 10800 seconds = timer length. """
         time = value["time"]
         entity = value["id"]
+        _LOGGER.debug("timer.data.value = %s",value)
         self._client.set_timer(
             entity, time)
         self._timer = time
+
+    def set_wattage(self, value):
+        """ Set device wattage, 0-1600w light, 0-600w dimmer """
+        watt = value["watt"]
+        entity = value["id"]
+        self._client.set_wattage(
+            entity, watt)
+        self._wattage_override = watt
 
     def set_led_indicator(self, value):
         """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100"""
