@@ -360,6 +360,7 @@ async def async_setup_platform(
         SERVICE_SET_SETPOINT_MIN,
         set_setpoint_min_service,
         schema=SET_SETPOINT_MIN_SCHEMA,
+    )
 
 class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
