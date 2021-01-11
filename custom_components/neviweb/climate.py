@@ -511,7 +511,7 @@ class NeviwebThermostat(ClimateEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
-        return self._temperature_format
+        return TEMP_CELSIUS
 
     @property
     def hvac_mode(self):
