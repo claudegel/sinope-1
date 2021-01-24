@@ -39,7 +39,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.5.0'
+VERSION = '1.5.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -288,6 +288,7 @@ class NeviwebClient(object):
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
+        _LOGGER.debug("daily stat = %s", data)
         if "values" in data:
             return data["values"]
         return []
@@ -401,10 +402,24 @@ class NeviwebClient(object):
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
-        try:
-            requests.put(DEVICE_DATA_URL + str(device_id) + "/attribute",
-                data=data, headers=self._headers, cookies=self._cookies,
-                timeout=self._timeout)
-        except OSError:
-            raise PyNeviwebError("Cannot set device %s attributes: %s", 
-                device_id, data)
+        result = 1
+        while result < 4:
+            try:
+                resp = requests.put(DEVICE_DATA_URL + str(device_id) + "/attribute",
+                    json=data, headers=self._headers, cookies=self._cookies,
+                    timeout=self._timeout)
+                _LOGGER.debug("Data = %s", data)
+                _LOGGER.debug("Request response = %s", resp.status_code)
+                _LOGGER.debug("Json Data received = %s", resp.json())
+                _LOGGER.debug("Content = %s", resp.content)
+                _LOGGER.debug("Text = %s", resp.text)
+            except OSError:
+                raise PyNeviwebError("Cannot set device %s attributes: %s", 
+                    device_id, data)
+            finally:
+                if "error" in resp.json():
+                    result += 1
+                    _LOGGER.debug("Service error received: %s, resending request %s",resp.json(), result)
+                    continue
+                else:
+                    break
