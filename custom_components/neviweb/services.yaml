@@ -119,3 +119,13 @@ set_setpoint_min:
     roomSetpointMin:
       description: setpoint minimum temperature to set.
       example: 10
+
+set_away_mode:
+  description: Set light device away mode action from auto, on, off, random and none.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device light or dimmer.
+      example: "light.neviweb_light_office"
+    awayMode:
+      description: Select between those modes, «auto», «manualOn», «manualOff», «random» and «none».
+      example: random
