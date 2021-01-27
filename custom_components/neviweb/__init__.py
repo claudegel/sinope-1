@@ -35,11 +35,12 @@ from .const import (
     ATTR_DISPLAY_2,
     ATTR_WATTAGE_OVERRIDE,
     ATTR_BACKLIGHT,
+    ATTR_AWAY_MODE,
     ATTR_SIGNATURE,
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.5.1'
+VERSION = '1.5.2'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -387,6 +388,12 @@ class NeviwebClient(object):
         """ Set backlight intensity when idle """
         data = {ATTR_BACKLIGHT: level}
         _LOGGER.debug("backlight.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_mode_away(self, device_id, away):
+        """ Set light device away mode """
+        data = {ATTR_AWAY_MODE:{"type":"action","value":{"action":away}}}
+        _LOGGER.debug("away_mode.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_setpoint_min(self, device_id, temp):
