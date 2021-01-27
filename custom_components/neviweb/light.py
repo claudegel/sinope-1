@@ -58,6 +58,7 @@ from .const import (
     SERVICE_SET_KEYPAD_LOCK,
     SERVICE_SET_TIMER,
     SERVICE_SET_WATTAGE,
+    SERVICE_SET_AWAY_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -124,6 +125,13 @@ SET_LED_INDICATOR_SCHEMA = vol.Schema(
          vol.Required(ATTR_BLUE): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=255)
          ),
+    }
+)
+
+SET_AWAY_MODE_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_AWAY_MODE): cv.string,
     }
 )
 
@@ -200,6 +208,17 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
+    def set_away_mode_service(service):
+        """ set light action in away mode """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "away": service.data[ATTR_AWAY_MODE]}
+                light.set_away_mode(value)
+                light.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_KEYPAD_LOCK,
@@ -226,6 +245,13 @@ async def async_setup_platform(
         SERVICE_SET_LED_INDICATOR,
         set_led_indicator_service,
         schema=SET_LED_INDICATOR_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_AWAY_MODE,
+        set_away_mode_service,
+        schema=SET_AWAY_MODE_SCHEMA,
     )
 
 def brightness_to_percentage(brightness):
@@ -392,6 +418,14 @@ class NeviwebLight(LightEntity):
         self._client.set_wattage(
             entity, watt)
         self._wattage_override = watt
+
+    def set_away_mode(self, value):
+        """ Set device away mode, On, Off, Auto, None or random """
+        away = value["away"]
+        entity = value["id"]
+        self._client.set_mode_away(
+            entity, away)
+        self._away_mode = away
 
     def set_led_indicator(self, value):
         """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100"""
