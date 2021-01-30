@@ -72,10 +72,14 @@ UPDATE_ATTRIBUTES = [
 
 IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
+LOCK_TYPES = {"locked","unlocked"}
+
 SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): cv.string,
+         vol.Required(ATTR_KEYPAD): vol.All(
+            cv.ensure_list, [vol.In(LOCK_TYPES)]
+         ),
     }
 )
 
