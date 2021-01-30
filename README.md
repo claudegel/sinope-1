@@ -107,6 +107,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb.set_wattage to set wattageOverload for light devices.
 - neviweb.set_setpoint_min to set minimum setpoint temperature for thermostats.
 - neviweb.set_setpoint_max to set maximum setpoint temperature for thermostats.
+- neviweb.set_away_mode to set mode for light and switch when occupency is set to away.
 
 ## Troubleshooting
 If you get a stack trace related to a Neviweb component in your `home-assistant.log` file, you can fill an issue in this repository.
