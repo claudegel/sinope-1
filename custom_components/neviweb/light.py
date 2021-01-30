@@ -128,10 +128,14 @@ SET_LED_INDICATOR_SCHEMA = vol.Schema(
     }
 )
 
+MODE_TYPES = {"auto","manualOn","manualOff","random","none"}
+
 SET_AWAY_MODE_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_AWAY_MODE): cv.string,
+         vol.Required(ATTR_AWAY_MODE): vol.All(
+            cv.ensure_list, [vol.In(MODE_TYPES)]
+         ),
     }
 )
 
