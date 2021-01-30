@@ -83,10 +83,14 @@ DEVICE_TYPE_DIMMER = [112]
 DEVICE_TYPE_LIGHT = [102]
 IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 
+LOCK_TYPES = {"locked","unlocked"}
+
 SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): cv.string,
+         vol.Required(ATTR_KEYPAD): vol.All(
+            cv.ensure_list, [vol.In(LOCK_TYPES)]
+         ),
     }
 )
 
