@@ -88,10 +88,14 @@ SET_TIMER_SCHEMA = vol.Schema(
     }
 )
 
+MODE_TYPES = {"auto","manualOn","manualOff","none"}
+
 SET_AWAY_MODE_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_AWAY_MODE): cv.string,
+         vol.Required(ATTR_AWAY_MODE): vol.All(
+            cv.ensure_list, [vol.In(MODE_TYPES)]
+         ),
     }
 )
 
@@ -318,8 +322,6 @@ class NeviwebSwitch(SwitchEntity):
     def set_away_mode(self, value):
         """ Set device away mode, On, Off, Auto, None """
         away = value["away"]
-        if away == "random":
-            away = "auto"
         entity = value["id"]
         self._client.set_mode_away(
             entity, away)
