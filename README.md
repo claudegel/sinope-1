@@ -100,14 +100,14 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb.set_keypad_lock, allow to lock the keypad of the device. Work for thermostat, light and power controler.
 - neviweb.set_timer, allow to set a delay after which the light or switch will close automatically.
 - neviweb.set_led_indicator, this allow to change led indicator color and intensity on light devices for «on» and «off» state. you can send any color in the RGB list via the three color parameters red, green and blue and you can set intensity of the led indicator.
-- neviweb.set_time_format to display time in 12h or 24h on thermostats.
-- neviweb.set_temperature_format to disply temperature in celsius or fahrenheit format on thermostats.
-- neviweb.set_early_start to set thermostat early start heating.
-- neviweb.set_backlight to set bakclight intensity in state «on» or «off» for thermostats.
-- neviweb.set_wattage to set wattageOverload for light devices.
-- neviweb.set_setpoint_min to set minimum setpoint temperature for thermostats.
-- neviweb.set_setpoint_max to set maximum setpoint temperature for thermostats.
-- neviweb.set_away_mode to set mode for light and switch when occupency is set to away.
+- neviweb.set_time_format, to display time in 12h or 24h on thermostats.
+- neviweb.set_temperature_format, to disply temperature in celsius or fahrenheit format on thermostats.
+- neviweb.set_early_start, to set thermostat early start heating.
+- neviweb.set_backlight, to set bakclight intensity in state «on» or «off» for thermostats.
+- neviweb.set_wattage, to set wattageOverload for light devices.
+- neviweb.set_setpoint_min, to set minimum setpoint temperature for thermostats.
+- neviweb.set_setpoint_max, to set maximum setpoint temperature for thermostats.
+- neviweb.set_away_mode, to set mode for light and switch when occupency is set to away.
 
 ## Troubleshooting
 If you get a stack trace related to a Neviweb component in your `home-assistant.log` file, you can fill an issue in this repository.
