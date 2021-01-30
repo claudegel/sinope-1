@@ -129,10 +129,14 @@ IMPLEMENTED_LOW_VOLTAGE = [21]
 IMPLEMENTED_THERMOSTAT = [10, 20]
 IMPLEMENTED_DEVICE_TYPES = IMPLEMENTED_THERMOSTAT + IMPLEMENTED_LOW_VOLTAGE
 
+DISPLAY_TYPES = {"outsideTemperature","default"}
+
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_DISPLAY_2): cv.string,
+         vol.Required(ATTR_DISPLAY_2): vol.All(
+            cv.ensure_list, [vol.In(DISPLAY_TYPES)]
+         ),
     }
 )
 
@@ -145,10 +149,14 @@ SET_BACKLIGHT_SCHEMA = vol.Schema(
     }
 )
 
+LOCK_TYPES = {"locked","unlocked"}
+
 SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): cv.string,
+         vol.Required(ATTR_KEYPAD): vol.All(
+            cv.ensure_list, [vol.In(LOCK_TYPES)]
+         ),
     }
 )
 
@@ -161,17 +169,25 @@ SET_TIME_FORMAT_SCHEMA = vol.Schema(
     }
 )
 
+TEMP_TYPES = {"celsius","fahrenheit"}
+
 SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TEMP): cv.string,
+         vol.Required(ATTR_TEMP): vol.All(
+            cv.ensure_list, [vol.In(TEMP_TYPES)]
+         ),
     }
 )
+
+START_TYPES = {"on","off"}
 
 SET_EARLY_START_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_EARLY_START): cv.string,
+         vol.Required(ATTR_EARLY_START): vol.All(
+            cv.ensure_list, [vol.In(START_TYPES)]
+         ),
     }
 )
 
