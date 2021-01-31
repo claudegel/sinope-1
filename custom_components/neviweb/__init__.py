@@ -40,7 +40,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.5.2'
+VERSION = '1.6.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -346,7 +346,7 @@ class NeviwebClient(object):
         self.set_device_attributes(device_id, data)
 
     def set_timer(self, device_id, time):
-        """Set device auto off timer."""
+        """Set light and switch device auto, off timer."""
         data = {ATTR_TIMER: time}
         _LOGGER.debug("timer.data = %s", data)
         self.set_device_attributes(device_id, data)
@@ -391,7 +391,7 @@ class NeviwebClient(object):
         self.set_device_attributes(device_id, data)
 
     def set_mode_away(self, device_id, away):
-        """ Set light device away mode """
+        """ Set light and switch device away mode """
         data = {ATTR_AWAY_MODE:{"type":"action","value":{"action":away}}}
         _LOGGER.debug("away_mode.data = %s", data)
         self.set_device_attributes(device_id, data)
