@@ -97,8 +97,11 @@ If you have also a GT130 also connected to Neviweb the network parameter is mand
 Automations require services to be able to send commande. Ex. light.turn_on. For the Neviweb devices connected to the GT125 it is possible to use custom services to send specific information to devices or to change some devices parameters. Those custom services can be accessed via development tool/services or can be used in automation:
 
 - neviweb.set_second_display, allow to change setting of the thermostats second display from setpoint temperature to outdoor temperature. This need to be sent only once to each devices.
-- neviweb.set_keypad_lock, allow to lock the keypad of the device. Work for thermostat, light and power controler.
-- neviweb.set_timer, allow to set a delay after which the light or switch will close automatically.
+- neviweb.set_climate_keypad_lock, allow to lock the keypad of the climate device.
+- neviweb.set_light_keypab_lock, allow to lock the keypad of the light device.
+- neviweb.set_switch_keypab_lock, allow to lock the keypad of the switch device.
+- neviweb.set_light_timer, allow to set a delay after which the light will close automatically.
+- neviweb.set_switch_timer, allow to set a delay after which the switch will close automatically.
 - neviweb.set_led_indicator, this allow to change led indicator color and intensity on light devices for «on» and «off» state. you can send any color in the RGB list via the three color parameters red, green and blue and you can set intensity of the led indicator.
 - neviweb.set_time_format, to display time in 12h or 24h on thermostats.
 - neviweb.set_temperature_format, to disply temperature in celsius or fahrenheit format on thermostats.
@@ -107,7 +110,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb.set_wattage, to set wattageOverload for light devices.
 - neviweb.set_setpoint_min, to set minimum setpoint temperature for thermostats.
 - neviweb.set_setpoint_max, to set maximum setpoint temperature for thermostats.
-- neviweb.set_away_mode, to set mode for light and switch when occupency is set to away.
+- neviweb.set_light_away_mode, to set mode for light when occupency is set to away.
+- neviweb.set_switch_away_mode, to set mode for switch when occupency is set to away.
 
 ## Troubleshooting
 If you get a stack trace related to a Neviweb component in your `home-assistant.log` file, you can fill an issue in this repository.
