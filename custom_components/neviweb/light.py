@@ -36,6 +36,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.typing import HomeAssistantType
 
 from datetime import timedelta
+from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
     ATTR_POWER_MODE,
@@ -55,9 +56,10 @@ from .const import (
     MODE_AUTO,
     MODE_MANUAL,
     SERVICE_SET_LED_INDICATOR,
-    SERVICE_SET_KEYPAD_LOCK,
-    SERVICE_SET_TIMER,
+    SERVICE_SET_LIGHT_KEYPAD_LOCK,
+    SERVICE_SET_LIGHT_TIMER,
     SERVICE_SET_WATTAGE,
+    SERVICE_SET_LIGHT_AWAY_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -81,14 +83,14 @@ DEVICE_TYPE_DIMMER = [112]
 DEVICE_TYPE_LIGHT = [102]
 IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 
-SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_KEYPAD): cv.string,
     }
 )
 
-SET_TIMER_SCHEMA = vol.Schema(
+SET_LIGHT_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_TIMER): vol.All(
@@ -127,6 +129,13 @@ SET_LED_INDICATOR_SCHEMA = vol.Schema(
     }
 )
 
+SET_LIGHT_AWAY_MODE_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_AWAY_MODE): cv.string,
+    }
+)
+
 async def async_setup_platform(
     hass: HomeAssistantType,
     config_entry,
@@ -156,7 +165,7 @@ async def async_setup_platform(
             
     async_add_entities(entities, True)
 
-    def set_keypad_lock_service(service):
+    def set_light_keypad_lock_service(service):
         """ lock/unlock keypad device """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -167,7 +176,7 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
-    def set_timer_service(service):
+    def set_light_timer_service(service):
         """ set timer for light device """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -200,18 +209,29 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
+    def set_light_away_mode_service(service):
+        """ set light action in away mode """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "away": service.data[ATTR_AWAY_MODE]}
+                light.set_away_mode(value)
+                light.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_KEYPAD_LOCK,
-        set_keypad_lock_service,
-        schema=SET_KEYPAD_LOCK_SCHEMA,
+        SERVICE_SET_LIGHT_KEYPAD_LOCK,
+        set_light_keypad_lock_service,
+        schema=SET_LIGHT_KEYPAD_LOCK_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_TIMER,
-        set_timer_service,
-        schema=SET_TIMER_SCHEMA,
+        SERVICE_SET_LIGHT_TIMER,
+        set_light_timer_service,
+        schema=SET_LIGHT_TIMER_SCHEMA,
     )
 
     hass.services.async_register(
@@ -226,6 +246,13 @@ async def async_setup_platform(
         SERVICE_SET_LED_INDICATOR,
         set_led_indicator_service,
         schema=SET_LED_INDICATOR_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LIGHT_AWAY_MODE,
+        set_light_away_mode_service,
+        schema=SET_LIGHT_AWAY_MODE_SCHEMA,
     )
 
 def brightness_to_percentage(brightness):
@@ -392,6 +419,14 @@ class NeviwebLight(LightEntity):
         self._client.set_wattage(
             entity, watt)
         self._wattage_override = watt
+
+    def set_away_mode(self, value):
+        """ Set device away mode, On, Off, Auto, None or random """
+        away = value["away"]
+        entity = value["id"]
+        self._client.set_mode_away(
+            entity, away)
+        self._away_mode = away
 
     def set_led_indicator(self, value):
         """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100"""
