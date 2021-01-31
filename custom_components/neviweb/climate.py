@@ -80,7 +80,7 @@ from .const import (
     MODE_AWAY,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_BACKLIGHT,
-    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_CLIMATE_KEYPAD_LOCK,
     SERVICE_SET_EARLY_START,
     SERVICE_SET_TIME_FORMAT,
     SERVICE_SET_TEMPERATURE_FORMAT,
@@ -129,14 +129,10 @@ IMPLEMENTED_LOW_VOLTAGE = [21]
 IMPLEMENTED_THERMOSTAT = [10, 20]
 IMPLEMENTED_DEVICE_TYPES = IMPLEMENTED_THERMOSTAT + IMPLEMENTED_LOW_VOLTAGE
 
-DISPLAY_TYPES = {"outsideTemperature","default"}
-
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_DISPLAY_2): vol.All(
-            cv.ensure_list, [vol.In(DISPLAY_TYPES)]
-         ),
+         vol.Required(ATTR_DISPLAY_2): cv.string,
     }
 )
 
@@ -149,14 +145,10 @@ SET_BACKLIGHT_SCHEMA = vol.Schema(
     }
 )
 
-LOCK_TYPES = {"locked","unlocked"}
-
-SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): vol.All(
-            cv.ensure_list, [vol.In(LOCK_TYPES)]
-         ),
+         vol.Required(ATTR_KEYPAD): cv.string,
     }
 )
 
@@ -169,25 +161,17 @@ SET_TIME_FORMAT_SCHEMA = vol.Schema(
     }
 )
 
-TEMP_TYPES = {"celsius","fahrenheit"}
-
 SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TEMP): vol.All(
-            cv.ensure_list, [vol.In(TEMP_TYPES)]
-         ),
+         vol.Required(ATTR_TEMP): cv.string,
     }
 )
-
-START_TYPES = {"on","off"}
 
 SET_EARLY_START_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_EARLY_START): vol.All(
-            cv.ensure_list, [vol.In(START_TYPES)]
-         ),
+         vol.Required(ATTR_EARLY_START): cv.string,
     }
 )
 
@@ -256,7 +240,7 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_keypad_lock_service(service):
+    def set_climate_keypad_lock_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -338,9 +322,9 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_KEYPAD_LOCK,
-        set_keypad_lock_service,
-        schema=SET_KEYPAD_LOCK_SCHEMA,
+        SERVICE_SET_CLIMATE_KEYPAD_LOCK,
+        set_climate_keypad_lock_service,
+        schema=SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
     )
 
     hass.services.async_register(
