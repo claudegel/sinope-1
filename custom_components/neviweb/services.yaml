@@ -1,25 +1,55 @@
-set_keypad_lock:
-  description: Lock or unlock device keypad. Work on climate, light, dimmer and switch.
+set_climate_keypad_lock:
+  description: Lock or unlock climate device keypad.
   fields:
     entity_id:
-      description: Name(s) of neviweb device to lock/unlock the keypad.
+      description: Name(s) of neviweb climate device to lock/unlock the keypad.
       example: "climate.neviweb_climate_office"
     lockKeypad:
       description: Device keypad status to set «locked» = Locked, «unlocked» = Unlocked.
       example: "locked"
 
-set_timer:
-  description: Set device timer, 0 = off, 1 to 10800 seconds = timer length. Devices will turn_off after that delay.
+set_light_keypad_lock:
+  description: Lock or unlock light and dimmer device keypad.
   fields:
     entity_id:
-      description: Name(s) of neviweb device to set the timer (light or switch).
+      description: Name(s) of neviweb device to lock/unlock the keypad.
+      example: "light.neviweb_light_office"
+    lockKeypad:
+      description: Device keypad status to set «locked» = Locked, «unlocked» = Unlocked.
+      example: "locked"
+
+set_switch_keypad_lock:
+  description: Lock or unlock switch device keypad.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device to lock/unlock the keypad.
+      example: "switch.neviweb_switch_office"
+    lockKeypad:
+      description: Device keypad status to set «locked» = Locked, «unlocked» = Unlocked.
+      example: "locked"
+
+set_light_timer:
+  description: Set light device timer, 0 = off, 1 to 10800 seconds = timer length. Devices will turn_off after that delay.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb light device to set the timer (light and dimmer).
       example: "light.neviweb_light_office"
     powerTimer:
       description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
       example: 60
 
+set_switch_timer:
+  description: Set device timer, 0 = off, 1 to 10800 seconds = timer length. Devices will turn_off after that delay.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb switch device to set the timer.
+      example: "switch.neviweb_switch_office"
+    powerTimer:
+      description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
+      example: 60
+
 set_time_format:
-  description: Set device time format 12h or 24h.
+  description: Set climate device time format 12h or 24h.
   fields:
     entity_id:
       description: Name(s) of neviweb device to set time format.
@@ -29,7 +59,7 @@ set_time_format:
       example: 24
 
 set_temperature_format:
-  description: Set device temperature format, celsius or fahrenheit.
+  description: Set climate device temperature format, celsius or fahrenheit.
   fields:
     entity_id:
       description: Name(s) of neviweb device to set temperature format.
@@ -39,7 +69,7 @@ set_temperature_format:
       example: "celsius"
 
 set_early_start:
-  description: Set heating early start on/off. Work on climate devices.
+  description: Set climate device heating early start on/off.
   fields:
     entity_id:
       description: Name(s) of neviweb device to set early start.
@@ -71,7 +101,7 @@ set_led_indicator:
       example: 255
 
 set_second_display:
-  description: Set the second miwi thermostat display to show setpoint or outside temperature.
+  description: Set the second thermostat display to show setpoint or outside temperature.
   fields:
     entity_id:
       description: Name(s) of device to set the second display.
@@ -120,12 +150,22 @@ set_setpoint_min:
       description: setpoint minimum temperature to set.
       example: 10
 
-set_away_mode:
-  description: Set lights and switchs devices away mode action from auto, on, off, random and none. For switchs, random mode is not supported. Will revert to auto mode.
+set_light_away_mode:
+  description: Set lights devices away mode action from auto, on, off, random and none.
   fields:
     entity_id:
-      description: Name(s) of neviweb device light, dimmer or switch.
+      description: Name(s) of neviweb light or dimmer device.
       example: "light.neviweb_light_office"
     awayMode:
       description: Select between those modes, «auto», «manualOn», «manualOff», «random» and «none».
       example: random
+
+set_switch_away_mode:
+  description: Set switchs devices away mode action from auto, on, off and none.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb switch device.
+      example: "switch.neviweb_switch_office"
+    awayMode:
+      description: Select between those modes, «auto», «manualOn», «manualOff» and «none».
+      example: auto
