@@ -49,9 +49,9 @@ from .const import (
     ATTR_AWAY_MODE,
     MODE_AUTO,
     MODE_MANUAL,
-    SERVICE_SET_KEYPAD_LOCK,
-    SERVICE_SET_TIMER,
-    SERVICE_SET_AWAY_MODE,
+    SERVICE_SET_SWITCH_KEYPAD_LOCK,
+    SERVICE_SET_SWITCH_TIMER,
+    SERVICE_SET_SWITCH_AWAY_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -72,18 +72,14 @@ UPDATE_ATTRIBUTES = [
 
 IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
-LOCK_TYPES = {"locked","unlocked"}
-
-SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): vol.All(
-            cv.ensure_list, [vol.In(LOCK_TYPES)]
-         ),
+         vol.Required(ATTR_KEYPAD): cv.string,
     }
 )
 
-SET_TIMER_SCHEMA = vol.Schema(
+SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_TIMER): vol.All(
@@ -92,14 +88,10 @@ SET_TIMER_SCHEMA = vol.Schema(
     }
 )
 
-MODE_TYPES = {"auto","manualOn","manualOff","none"}
-
-SET_AWAY_MODE_SCHEMA = vol.Schema(
+SET_SWITCH_AWAY_MODE_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_AWAY_MODE): vol.All(
-            cv.ensure_list, [vol.In(MODE_TYPES)]
-         ),
+         vol.Required(ATTR_AWAY_MODE): cv.string,
     }
 )
 
@@ -128,7 +120,7 @@ async def async_setup_platform(
             
     async_add_entities(entities, True)
 
-    def set_keypad_lock_service(service):
+    def set_switch_keypad_lock_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -139,7 +131,7 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-    def set_timer_service(service):
+    def set_switch_timer_service(service):
         """ set timer for switch device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -150,7 +142,7 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-    def set_away_mode_service(service):
+    def set_switch_away_mode_service(service):
         """ set light action in away mode """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -163,23 +155,23 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_KEYPAD_LOCK,
-        set_keypad_lock_service,
-        schema=SET_KEYPAD_LOCK_SCHEMA,
+        SERVICE_SET_SWITCH_KEYPAD_LOCK,
+        set_switch_keypad_lock_service,
+        schema=SET_SWITCH_KEYPAD_LOCK_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_TIMER,
-        set_timer_service,
-        schema=SET_TIMER_SCHEMA,
+        SERVICE_SET_SWITCH_TIMER,
+        set_switch_timer_service,
+        schema=SET_SWITCH_TIMER_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_AWAY_MODE,
-        set_away_mode_service,
-        schema=SET_AWAY_MODE_SCHEMA,
+        SERVICE_SET_SWITCH_AWAY_MODE,
+        set_switch_away_mode_service,
+        schema=SET_SWITCH_AWAY_MODE_SCHEMA,
     )
 
 class NeviwebSwitch(SwitchEntity):
