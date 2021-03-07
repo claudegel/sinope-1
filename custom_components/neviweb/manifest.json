@@ -4,5 +4,6 @@
   "documentation": "https://github.com/claudegel/sinope-1",
   "dependencies": [],
   "codeowners": ["@claudegel"],
-  "requirements": []
+  "requirements": [],
+  "version": "1.6.2"
 }
