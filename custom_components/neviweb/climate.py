@@ -73,6 +73,7 @@ from .const import (
     ATTR_BACKLIGHT,
     ATTR_TIME,
     ATTR_TEMP,
+    ATTR_FLOOR_MODE,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -126,8 +127,9 @@ PRESET_MODES = [
 ]
 
 IMPLEMENTED_LOW_VOLTAGE = [21]
-IMPLEMENTED_THERMOSTAT = [10, 20]
-IMPLEMENTED_DEVICE_TYPES = IMPLEMENTED_THERMOSTAT + IMPLEMENTED_LOW_VOLTAGE
+IMPLEMENTED_THERMOSTAT = [10]
+IMPLEMENTED_FLOOR_THERMOSTAT = [20]
+IMPLEMENTED_DEVICE_TYPES = IMPLEMENTED_THERMOSTAT + IMPLEMENTED_LOW_VOLTAGE + IMPLEMENTED_FLOOR_THERMOSTAT
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
@@ -381,6 +383,7 @@ class NeviwebThermostat(ClimateEntity):
         self._early_start = None
         self._operation_mode = None
         self._heat_level = 0
+        self._floor_mode = None
         self._away_temp = None
         self._keypad = "unlocked"
         self._display_2 = None
@@ -389,6 +392,8 @@ class NeviwebThermostat(ClimateEntity):
         self._temperature_format = TEMP_CELSIUS
         self._is_low_voltage = device_info["signature"]["type"] in \
             IMPLEMENTED_LOW_VOLTAGE
+        self._is_floor = device_info["signature"]["type"] in \
+            IMPLEMENTED_FLOOR_THERMOSTAT
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -397,9 +402,13 @@ class NeviwebThermostat(ClimateEntity):
             WATT_ATTRIBUTE = [ATTR_WATTAGE]
         else:
             WATT_ATTRIBUTE = []
+        if self._is_floor:
+            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_MAX, ATTR_FLOOR_AIR_LIMIT]
+        else:
+            FLOOR_ATTRIBUTE = []
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + WATT_ATTRIBUTE + FLOOR_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
