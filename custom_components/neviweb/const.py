@@ -37,6 +37,7 @@ ATTR_ALERT_LOW = "alertLowAirTemp"
 ATTR_BACKLIGHT = "backlightIntensityIdle"
 ATTR_TIME = "timeFormat"
 ATTR_TEMP = "temperatureFormat"
+ATTR_FLOOR_MODE = "airFloorMode"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
