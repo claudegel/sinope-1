@@ -74,6 +74,11 @@ from .const import (
     ATTR_TIME,
     ATTR_TEMP,
     ATTR_FLOOR_MODE,
+    ATTR_FLOOR_AUX,
+    ATTR_FLOOR_OUTPUT2,
+    ATTR_FLOOR_MAX,
+    ATTR_GFCI_STATUS,
+    ATTR_FLOOR_AIR_LIMIT,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -87,6 +92,7 @@ from .const import (
     SERVICE_SET_TEMPERATURE_FORMAT,
     SERVICE_SET_SETPOINT_MAX,
     SERVICE_SET_SETPOINT_MIN,
+    SERVICE_SET_AIR_FLOOR_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -192,6 +198,13 @@ SET_SETPOINT_MIN_SCHEMA = vol.Schema(
          vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(
              vol.Coerce(float), vol.Range(min=5, max=24)
          ),
+    }
+)
+
+SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOOR_MODE): cv.string,
     }
 )
 
@@ -308,6 +321,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_air_floor_mode(service):
+        """set ambiant or floor sensor control"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "mode": service.data[ATTR_FLOOR_MODE]}
+                thermostat.set_air_floor_mode(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -364,6 +388,14 @@ async def async_setup_platform(
         schema=SET_SETPOINT_MIN_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_AIR_FLOOR_MODE,
+        set_air_floor_mode_service,
+        schema=SET_AIR_FLOOR_MODE_SCHEMA,
+    )
+        
+
 class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
@@ -384,6 +416,12 @@ class NeviwebThermostat(ClimateEntity):
         self._operation_mode = None
         self._heat_level = 0
         self._floor_mode = None
+        self._gfci_status = None
+        self._aux_heat = None
+        self._floor_air_limit = None
+        self._floor_max = None
+        self._load2 = 0
+        self._load2_status = None
         self._away_temp = None
         self._keypad = "unlocked"
         self._display_2 = None
@@ -442,6 +480,14 @@ class NeviwebThermostat(ClimateEntity):
                     _LOGGER.debug("Attribute backlightIntensityIdle is missing: %s", device_data)
                 if not self._is_low_voltage:
                     self._wattage = device_data[ATTR_WATTAGE]["value"]
+                if self._is_floor:
+                    self._gfci_status = device_data[ATTR_GFCI_STATUS]
+                    self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                    self._aux_heat = device_data[ATTR_FLOOR_AUX]
+                    self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                    self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
+                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                    self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                 return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
@@ -487,6 +533,14 @@ class NeviwebThermostat(ClimateEntity):
         data = {}
         if not self._is_low_voltage:
             data = {'wattage': self._wattage}
+        if self._is_floor:
+            data.update({'gfci_status': self._gfci_status,
+                    'sensor_mode': self._floor_mode,
+                    'slave_heat': self._aux_heat,
+                    'slave_status': self._load2_status,
+                    'slave_load': self._load2,
+                    'floor_setpoint_max': self._floor_max,
+                    'floor_air_limit': self._floor_air_limit})
         data.update ({'heat_level': self._heat_level,
                       'rssi': self._rssi,
                       'alarm': self._alarm,
@@ -657,6 +711,14 @@ class NeviwebThermostat(ClimateEntity):
         self._client.set_setpoint_min(
             entity, temp)
         self._min_temp = temp
+
+    def set_air_floor_mode(self, value):
+        """ set ambiant or floor temperature control"""
+        mode = value ["mode"]
+        entity = value["id"]
+        self._client.set_air_floor_mode(
+            entity, mode)
+        self._floor_mode = mode
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
