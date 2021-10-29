@@ -47,6 +47,8 @@ ATTR_FLOOR_SETPOINT_MIN = "floorSetpointMin"
 ATTR_FLOOR_SETPOINT_MAX = "floorSetpointMax"
 ATTR_BACKLIGHT_MODE = "backlightAdaptive"
 ATTR_AUX_WATTAGE_OVERRIDE = "auxWattageOverride"
+ATTR_FLOOR_SETPOINT = "floorSetpoint"
+ATTR_FLOOR_TEMP = "floorTemperature"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
