@@ -408,6 +408,7 @@ class NeviwebThermostat(ClimateEntity):
         self._name = name
         self._client = data.neviweb_client
         self._id = device_info["id"]
+        self._model = device_info["signature"]["model"]
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
