@@ -488,20 +488,20 @@ class NeviwebThermostat(ClimateEntity):
                 if not self._is_low_voltage:
                     self._wattage = device_data[ATTR_WATTAGE]["value"]
                 if self._is_floor:
-                    self._gfci_status = device_data[ATTR_GFCI_STATUS]
-                    self._floor_mode = device_data[ATTR_FLOOR_MODE]
-                    self._aux_heat = device_data[ATTR_FLOOR_AUX]
-                    self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
-                    self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
-                    self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
-                    self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
-                    self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
-                    self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
-                    if ATTR_BACKLIGHT_MODE in device_data:
-                        self._backlight = device_data[ATTR_BACKLIGHT_MODE]
-                    else:
-                        _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
-                    
+                    if self._model == 735:
+                        self._gfci_status = device_data[ATTR_GFCI_STATUS]
+                        self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                        self._aux_heat = device_data[ATTR_FLOOR_AUX]
+                        self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
+                        self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                        self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
+                        self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
+                        if ATTR_BACKLIGHT_MODE in device_data:
+                            self._backlight = device_data[ATTR_BACKLIGHT_MODE]
+                        else:
+                            _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
                 return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
