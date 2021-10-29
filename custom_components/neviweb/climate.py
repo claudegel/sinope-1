@@ -75,10 +75,14 @@ from .const import (
     ATTR_TEMP,
     ATTR_FLOOR_MODE,
     ATTR_FLOOR_AUX,
-    ATTR_FLOOR_OUTPUT2,
+    ATTR_AUX_WATTAGE_OVERRIDE,
     ATTR_FLOOR_MAX,
+    ATTR_FLOOR_MIN,
+    ATTR_FLOOR_SETPOINT_MIN,
+    ATTR_FLOOR_SETPOINT_MAX,
     ATTR_GFCI_STATUS,
     ATTR_FLOOR_AIR_LIMIT,
+    ATTR_BACKLIGHT_MODE,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -418,10 +422,12 @@ class NeviwebThermostat(ClimateEntity):
         self._floor_mode = None
         self._gfci_status = None
         self._aux_heat = None
+        self._aux_wattage = None
         self._floor_air_limit = None
         self._floor_max = None
-        self._load2 = 0
-        self._load2_status = None
+        self._floor_min = None
+        self._floor_setpoint_max = None
+        self._floor_setpoint_min = None
         self._away_temp = None
         self._keypad = "unlocked"
         self._display_2 = None
@@ -484,10 +490,17 @@ class NeviwebThermostat(ClimateEntity):
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     self._aux_heat = device_data[ATTR_FLOOR_AUX]
+                    self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
                     self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
-                    self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
-                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
                     self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                    self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                    self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
+                    self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
+                    if ATTR_BACKLIGHT_MODE in device_data:
+                        self._backlight = device_data[ATTR_BACKLIGHT_MODE]
+                    else:
+                        _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
+                    
                 return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
@@ -536,11 +549,13 @@ class NeviwebThermostat(ClimateEntity):
         if self._is_floor:
             data.update({'gfci_status': self._gfci_status,
                     'sensor_mode': self._floor_mode,
-                    'slave_heat': self._aux_heat,
-                    'slave_status': self._load2_status,
-                    'slave_load': self._load2,
+                    'slave_status': self._aux_heat,
+                    'slave_load': self._aux_wattage,
                     'floor_setpoint_max': self._floor_max,
-                    'floor_air_limit': self._floor_air_limit})
+                    'floor_setpoint_min': self._floor_min,
+                    'floor_air_limit': self._floor_air_limit,
+                    'floor_temp_max': self._floor_setpoint_max,
+                    'floor_temp_min': self._floor_setpoint_min})
         data.update ({'heat_level': self._heat_level,
                       'rssi': self._rssi,
                       'alarm': self._alarm,
