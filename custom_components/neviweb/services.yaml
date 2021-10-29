@@ -177,5 +177,5 @@ set_air_floor_mode:
       description: Name(s) of neviweb130 floor thermostat.
       example: "climate.neviweb_climate_plancher_cuisine"
     airFloorMode:
-      description: Set to "airByFloor" = «Air», ambiant temperature or to "floor" = «Floor», floor temperature.
+      description: Set to "airByFloor" for ambiant temperature or to "floor" for floor temperature.
       example: "floor"
