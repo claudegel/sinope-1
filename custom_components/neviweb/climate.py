@@ -82,7 +82,6 @@ from .const import (
     ATTR_FLOOR_SETPOINT_MAX,
     ATTR_FLOOR_SETPOINT,
     ATTR_FLOOR_TEMP,
-    ATTR_GFCI_STATUS,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_BACKLIGHT_MODE,
     MODE_AUTO,
@@ -423,7 +422,6 @@ class NeviwebThermostat(ClimateEntity):
         self._operation_mode = None
         self._heat_level = 0
         self._floor_mode = None
-        self._gfci_status = None
         self._aux_heat = None
         self._aux_wattage = None
         self._floor_air_limit = None
@@ -452,7 +450,7 @@ class NeviwebThermostat(ClimateEntity):
         else:
             WATT_ATTRIBUTE = []
         if self._is_floor:
-            FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP]
+            FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP]
         else:
             FLOOR_ATTRIBUTE = []
         start = time.time()
@@ -493,7 +491,6 @@ class NeviwebThermostat(ClimateEntity):
                     self._wattage = device_data[ATTR_WATTAGE]["value"]
                 if self._is_floor:
                     if self._model == 735:
-                        self._gfci_status = device_data[ATTR_GFCI_STATUS]
                         self._floor_mode = device_data[ATTR_FLOOR_MODE]
                         self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
                         self._floor_temperature = device_data[ATTR_FLOOR_TEMP]
@@ -554,8 +551,7 @@ class NeviwebThermostat(ClimateEntity):
         if not self._is_low_voltage:
             data = {'wattage': self._wattage}
         if self._is_floor:
-            data.update({'gfci_status': self._gfci_status,
-                    'sensor_mode': self._floor_mode,
+            data.update({'sensor_mode': self._floor_mode,
                     'slave_status': self._aux_heat,
                     'slave_load': self._aux_wattage,
                     'floor_setpoint': self._floor_setpoint,
