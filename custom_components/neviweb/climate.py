@@ -327,7 +327,7 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_air_floor_mode(service):
+    def set_air_floor_mode_service(service):
         """set ambiant or floor sensor control"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
