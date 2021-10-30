@@ -558,11 +558,15 @@ class NeviwebThermostat(ClimateEntity):
                     'sensor_mode': self._floor_mode,
                     'slave_status': self._aux_heat,
                     'slave_load': self._aux_wattage,
+                    'floor_setpoint': self._floor_setpoint,
+                    'floor_temperature': self._floor_temperature,
                     'floor_setpoint_max': self._floor_max,
                     'floor_setpoint_min': self._floor_min,
                     'floor_air_limit': self._floor_air_limit,
-                    'floor_temp_max': self._floor_setpoint_max,
-                    'floor_temp_min': self._floor_setpoint_min})
+                    'floor_temp_max': self._floor_max,
+                    'floor_temp_min': self._floor_min,
+                    'floor_setpoint_max': self._floor_setpoint_max,
+                    'floor_setpoint_min': self._floor_setpoint_min})
         data.update ({'heat_level': self._heat_level,
                       'rssi': self._rssi,
                       'alarm': self._alarm,
