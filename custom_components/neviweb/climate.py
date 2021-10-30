@@ -80,6 +80,8 @@ from .const import (
     ATTR_FLOOR_MIN,
     ATTR_FLOOR_SETPOINT_MIN,
     ATTR_FLOOR_SETPOINT_MAX,
+    ATTR_FLOOR_SETPOINT,
+    ATTR_FLOOR_TEMP,
     ATTR_GFCI_STATUS,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_BACKLIGHT_MODE,
@@ -427,6 +429,8 @@ class NeviwebThermostat(ClimateEntity):
         self._floor_air_limit = None
         self._floor_max = None
         self._floor_min = None
+        self._floor_setpoint = None
+        self._floor_temperature = None
         self._floor_setpoint_max = None
         self._floor_setpoint_min = None
         self._away_temp = None
@@ -448,7 +452,7 @@ class NeviwebThermostat(ClimateEntity):
         else:
             WATT_ATTRIBUTE = []
         if self._is_floor:
-            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_MAX, ATTR_FLOOR_AIR_LIMIT]
+            FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP]
         else:
             FLOOR_ATTRIBUTE = []
         start = time.time()
@@ -491,6 +495,8 @@ class NeviwebThermostat(ClimateEntity):
                     if self._model == 735:
                         self._gfci_status = device_data[ATTR_GFCI_STATUS]
                         self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                        self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
+                        self._floor_temperature = device_data[ATTR_FLOOR_TEMP]
                         self._aux_heat = device_data[ATTR_FLOOR_AUX]
                         self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
                         self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
