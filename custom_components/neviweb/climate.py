@@ -74,7 +74,6 @@ from .const import (
     ATTR_TIME,
     ATTR_TEMP,
     ATTR_FLOOR_MODE,
-    ATTR_FLOOR_AUX,
     ATTR_AUX_WATTAGE_OVERRIDE,
     ATTR_FLOOR_MAX,
     ATTR_FLOOR_MIN,
@@ -84,6 +83,13 @@ from .const import (
     ATTR_FLOOR_TEMP,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_BACKLIGHT_MODE,
+    ATTR_FLOOR_SENSOR_TYPE,
+    ATTR_CYCLE_LENGTH,
+    ATTR_AUX_CONFIG,
+    ATTR_AUX_CYCLE_LENGTH,
+    ATTR_PUMP_PROTEC,
+    ATTR_ALARM_0,
+    ATTR_ALARM_1,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -435,6 +441,18 @@ class NeviwebThermostat(ClimateEntity):
         self._keypad = "unlocked"
         self._display_2 = None
         self._backlight = None
+        self._sensor_type = None
+        self._cycle_length = None
+        self._aux_cycle_config = None
+        self._aux_cycle_length = None
+        self._pump_protec_freq = None
+        self._pump_protec_duration = None
+        self._alarm_0_type = None
+        self._alarm_0_severity = None
+        self._alarm_0_duration = None
+        self._alarm_1_type = None
+        self._alarm_1_severity = None
+        self._alarm_1_duration = None
         self._time_format = "24h"
         self._temperature_format = TEMP_CELSIUS
         self._is_low_voltage = device_info["signature"]["type"] in \
@@ -450,12 +468,19 @@ class NeviwebThermostat(ClimateEntity):
         else:
             WATT_ATTRIBUTE = []
         if self._is_floor:
-            FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP]
+            FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
+                               ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_ALARM_0, ATTR_ALARM_1]
         else:
             FLOOR_ATTRIBUTE = []
+        if self._is_low_voltage:
+            LOW_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
+                             ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_CYCLE_LENGTH, \
+                             ATTR_AUX_CYCLE_LENGTH, ATTR_PUMP_PROTEC, ATTR_ALARM_0, ATTR_ALARM_1]
+        else:
+            LOW_ATTRIBUTE = []
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + WATT_ATTRIBUTE + FLOOR_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + WATT_ATTRIBUTE + FLOOR_ATTRIBUTE + LOW_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -489,23 +514,80 @@ class NeviwebThermostat(ClimateEntity):
                     _LOGGER.debug("Attribute backlightIntensityIdle is missing: %s", device_data)
                 if not self._is_low_voltage:
                     self._wattage = device_data[ATTR_WATTAGE]["value"]
+                else:
+                    self._wattage = device_data[ATTR_WATTAGE_OVERRIDE]
                 if self._is_floor:
                     if self._model == 735:
                         self._floor_mode = device_data[ATTR_FLOOR_MODE]
-                        self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
+                        if ATTR_FLOOR_SETPOINT in device_data:
+                            self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
                         self._floor_temperature = device_data[ATTR_FLOOR_TEMP]
-                        self._aux_heat = device_data[ATTR_FLOOR_AUX]
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
+                        self._aux_heat = device_data[ATTR_AUX_CONFIG]
                         self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
+                        self._aux_cycle_config = device_data[ATTR_AUX_CONFIG]
                         self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                         self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                         self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
                         self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
                         self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
+                        self._sensor_type = device_data[ATTR_FLOOR_SENSOR_TYPE]
                         if ATTR_BACKLIGHT_MODE in device_data:
                             self._backlight = device_data[ATTR_BACKLIGHT_MODE]
                         else:
                             _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
+                        if ATTR_ALARM_0 in device_data:
+                            self._alarm_0_type = device_data[ATTR_ALARM_0]["type"]
+                            self._alarm_0_severity = device_data[ATTR_ALARM_0]["severity"]
+                            self._alarm_0_duration = device_data[ATTR_ALARM_0]["duration"]
+                        if ATTR_ALARM_1 in device_data:
+                            self._alarm_1_type = device_data[ATTR_ALARM_1]["type"]
+                            self._alarm_1_severity = device_data[ATTR_ALARM_1]["severity"]
+                            self._alarm_1_duration = device_data[ATTR_ALARM_1]["duration"]
                 return
+                if self._is_low_voltage:
+                    self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                    if ATTR_FLOOR_SETPOINT in device_data:
+                        self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
+                    else:
+                        self._floor_setpoint = None
+                    if ATTR_FLOOR_TEMP in device_data:
+                        self._floor_temperature = device_data[ATTR_FLOOR_TEMP]
+                    else:
+                        self._floor_temperature = None
+                    self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
+                    self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
+                    self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
+                    self._aux_heat = device_data[ATTR_AUX_CONFIG]
+                    self._aux_cycle_config = device_data[ATTR_AUX_CONFIG]
+                    self._aux_cycle_length = device_data[ATTR_AUX_CYCLE_LENGTH]
+                    self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
+                    if device_data[ATTR_FLOOR_AIR_LIMIT]["status"] =="off":
+                        self._floor_air_limit = None
+                    else:    
+                        self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                    if device_data[ATTR_FLOOR_MAX]["status"] != "off":
+                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                    else:
+                        self._floor_max = None
+                        self._floor_min = None
+                    self._sensor_type = device_data[ATTR_FLOOR_SENSOR_TYPE]
+                    if ATTR_PUMP_PROTEC in device_data:
+                        self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
+                        self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
+                    if ATTR_BACKLIGHT_MODE in device_data:
+                        self._backlight = device_data[ATTR_BACKLIGHT_MODE]
+                    else:
+                        _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
+                    if ATTR_ALARM_0 in device_data:
+                        self._alarm_0_type = device_data[ATTR_ALARM_0]["type"]
+                        self._alarm_0_severity = device_data[ATTR_ALARM_0]["severity"]
+                        self._alarm_0_duration = device_data[ATTR_ALARM_0]["duration"]
+                    if ATTR_ALARM_1 in device_data:
+                        self._alarm_1_type = device_data[ATTR_ALARM_1]["type"]
+                        self._alarm_1_severity = device_data[ATTR_ALARM_1]["severity"]
+                        self._alarm_1_duration = device_data[ATTR_ALARM_1]["duration"]
             else:
                 if device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("Error in reading device %s: (%s), too slow to respond or busy.", self._name, device_data)
@@ -548,22 +630,49 @@ class NeviwebThermostat(ClimateEntity):
     def device_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        if not self._is_low_voltage:
-            data = {'wattage': self._wattage}
         if self._is_floor:
             data.update({'sensor_mode': self._floor_mode,
                     'slave_status': self._aux_heat,
                     'slave_load': self._aux_wattage,
+                    'floor_sensor_type': self._sensor_type,
                     'floor_setpoint': self._floor_setpoint,
                     'floor_temperature': self._floor_temperature,
-                    'floor_setpoint_max': self._floor_max,
-                    'floor_setpoint_min': self._floor_min,
                     'floor_air_limit': self._floor_air_limit,
                     'floor_temp_max': self._floor_max,
                     'floor_temp_min': self._floor_min,
                     'floor_setpoint_max': self._floor_setpoint_max,
-                    'floor_setpoint_min': self._floor_setpoint_min})
+                    'floor_setpoint_min': self._floor_setpoint_min,
+                    'alarm0_type': self._alarm_0_type,
+                    'alarm0_severity': self._alarm_0_severity,
+                    'alarm0_duration': self._alarm_0_duration
+                    'alarm1_type': self._alarm_1_type,
+                    'alarm1_severity': self._alarm_1_severity,
+                    'alarm1_duration': self._alarm_1_duration})
+        if self._is_low_voltage:
+            data.update({'sensor_mode': self._floor_mode,
+                    'slave_status': self._aux_heat,
+                    'slave_load': self._aux_wattage,
+                    'slave_output_conf': self._aux_cycle_config,
+                    'slave_output_cycle': self._aux_cycle_length,
+                    'cycle_length': self._cycle_length,
+                    'floor_sensor_type': self._sensor_type,
+                    'floor_setpoint': self._floor_setpoint,
+                    'floor_temperature': self._floor_temperature,
+                    'floor_air_limit': self._floor_air_limit,
+                    'floor_temp_max': self._floor_max,
+                    'floor_temp_min': self._floor_min,
+                    'floor_setpoint_max': self._floor_setpoint_max,
+                    'floor_setpoint_min': self._floor_setpoint_min,
+                    'pump_protection_freq': self._pump_protec_freq,
+                    'pump_protection_duration': self._pump_protec_duration
+                    'alarm0_type': self._alarm_0_type,
+                    'alarm0_severity': self._alarm_0_severity,
+                    'alarm0_duration': self._alarm_0_duration
+                    'alarm1_type': self._alarm_1_type,
+                    'alarm1_severity': self._alarm_1_severity,
+                    'alarm1_duration': self._alarm_1_duration})
         data.update ({'heat_level': self._heat_level,
+                      'wattage': self._wattage,
                       'rssi': self._rssi,
                       'alarm': self._alarm,
                       'keypad': self._keypad,
