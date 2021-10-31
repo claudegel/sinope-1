@@ -644,7 +644,7 @@ class NeviwebThermostat(ClimateEntity):
                     'floor_setpoint_min': self._floor_setpoint_min,
                     'alarm0_type': self._alarm_0_type,
                     'alarm0_severity': self._alarm_0_severity,
-                    'alarm0_duration': self._alarm_0_duration
+                    'alarm0_duration': self._alarm_0_duration,
                     'alarm1_type': self._alarm_1_type,
                     'alarm1_severity': self._alarm_1_severity,
                     'alarm1_duration': self._alarm_1_duration})
@@ -664,10 +664,10 @@ class NeviwebThermostat(ClimateEntity):
                     'floor_setpoint_max': self._floor_setpoint_max,
                     'floor_setpoint_min': self._floor_setpoint_min,
                     'pump_protection_freq': self._pump_protec_freq,
-                    'pump_protection_duration': self._pump_protec_duration
+                    'pump_protection_duration': self._pump_protec_duration,
                     'alarm0_type': self._alarm_0_type,
                     'alarm0_severity': self._alarm_0_severity,
-                    'alarm0_duration': self._alarm_0_duration
+                    'alarm0_duration': self._alarm_0_duration,
                     'alarm1_type': self._alarm_1_type,
                     'alarm1_severity': self._alarm_1_severity,
                     'alarm1_duration': self._alarm_1_duration})
