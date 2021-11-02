@@ -65,6 +65,7 @@ from .const import (
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_WATTAGE,
+    ATTR_WATTAGE_OVERRIDE,
     ATTR_ALARM,
     ATTR_AWAY_SETPOINT,
     ATTR_EARLY_START,
@@ -475,7 +476,7 @@ class NeviwebThermostat(ClimateEntity):
         if self._is_low_voltage:
             LOW_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
                              ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_CYCLE_LENGTH, \
-                             ATTR_AUX_CYCLE_LENGTH, ATTR_PUMP_PROTEC, ATTR_ALARM_0, ATTR_ALARM_1]
+                             ATTR_AUX_CYCLE_LENGTH, ATTR_PUMP_PROTEC, ATTR_ALARM_0, ATTR_ALARM_1, ATTR_WATTAGE_OVERRIDE]
         else:
             LOW_ATTRIBUTE = []
         start = time.time()
@@ -522,7 +523,6 @@ class NeviwebThermostat(ClimateEntity):
                         if ATTR_FLOOR_SETPOINT in device_data:
                             self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
                         self._floor_temperature = device_data[ATTR_FLOOR_TEMP]
-                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                         self._aux_heat = device_data[ATTR_AUX_CONFIG]
                         self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
                         self._aux_cycle_config = device_data[ATTR_AUX_CONFIG]
