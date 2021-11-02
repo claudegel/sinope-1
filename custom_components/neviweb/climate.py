@@ -525,7 +525,6 @@ class NeviwebThermostat(ClimateEntity):
                         self._floor_temperature = device_data[ATTR_FLOOR_TEMP]
                         self._aux_heat = device_data[ATTR_AUX_CONFIG]
                         self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
-                        self._aux_cycle_config = device_data[ATTR_AUX_CONFIG]
                         self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                         self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                         self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
