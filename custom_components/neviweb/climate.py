@@ -535,15 +535,6 @@ class NeviwebThermostat(ClimateEntity):
                             self._backlight = device_data[ATTR_BACKLIGHT_MODE]
                         else:
                             _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
-                        if ATTR_ALARM_0 in device_data:
-                            self._alarm_0_type = device_data[ATTR_ALARM_0]["type"]
-                            self._alarm_0_severity = device_data[ATTR_ALARM_0]["severity"]
-                            self._alarm_0_duration = device_data[ATTR_ALARM_0]["duration"]
-                        if ATTR_ALARM_1 in device_data:
-                            self._alarm_1_type = device_data[ATTR_ALARM_1]["type"]
-                            self._alarm_1_severity = device_data[ATTR_ALARM_1]["severity"]
-                            self._alarm_1_duration = device_data[ATTR_ALARM_1]["duration"]
-                return
                 if self._is_low_voltage:
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     if ATTR_FLOOR_SETPOINT in device_data:
@@ -579,14 +570,15 @@ class NeviwebThermostat(ClimateEntity):
                         self._backlight = device_data[ATTR_BACKLIGHT_MODE]
                     else:
                         _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
-                    if ATTR_ALARM_0 in device_data:
-                        self._alarm_0_type = device_data[ATTR_ALARM_0]["type"]
-                        self._alarm_0_severity = device_data[ATTR_ALARM_0]["severity"]
-                        self._alarm_0_duration = device_data[ATTR_ALARM_0]["duration"]
-                    if ATTR_ALARM_1 in device_data:
-                        self._alarm_1_type = device_data[ATTR_ALARM_1]["type"]
-                        self._alarm_1_severity = device_data[ATTR_ALARM_1]["severity"]
-                        self._alarm_1_duration = device_data[ATTR_ALARM_1]["duration"]
+                if ATTR_ALARM_0 in device_data:
+                    self._alarm_0_type = device_data[ATTR_ALARM_0]["type"]
+                    self._alarm_0_severity = device_data[ATTR_ALARM_0]["severity"]
+                    self._alarm_0_duration = device_data[ATTR_ALARM_0]["duration"]
+                if ATTR_ALARM_1 in device_data:
+                    self._alarm_1_type = device_data[ATTR_ALARM_1]["type"]
+                    self._alarm_1_severity = device_data[ATTR_ALARM_1]["severity"]
+                    self._alarm_1_duration = device_data[ATTR_ALARM_1]["duration"]
+                return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("Error in reading device %s: (%s), too slow to respond or busy.", self._name, device_data)
@@ -640,13 +632,7 @@ class NeviwebThermostat(ClimateEntity):
                     'floor_temp_max': self._floor_max,
                     'floor_temp_min': self._floor_min,
                     'floor_setpoint_max': self._floor_setpoint_max,
-                    'floor_setpoint_min': self._floor_setpoint_min,
-                    'alarm0_type': self._alarm_0_type,
-                    'alarm0_severity': self._alarm_0_severity,
-                    'alarm0_duration': self._alarm_0_duration,
-                    'alarm1_type': self._alarm_1_type,
-                    'alarm1_severity': self._alarm_1_severity,
-                    'alarm1_duration': self._alarm_1_duration})
+                    'floor_setpoint_min': self._floor_setpoint_min})
         if self._is_low_voltage:
             data.update({'sensor_mode': self._floor_mode,
                     'slave_status': self._aux_heat,
@@ -663,13 +649,7 @@ class NeviwebThermostat(ClimateEntity):
                     'floor_setpoint_max': self._floor_setpoint_max,
                     'floor_setpoint_min': self._floor_setpoint_min,
                     'pump_protection_freq': self._pump_protec_freq,
-                    'pump_protection_duration': self._pump_protec_duration,
-                    'alarm0_type': self._alarm_0_type,
-                    'alarm0_severity': self._alarm_0_severity,
-                    'alarm0_duration': self._alarm_0_duration,
-                    'alarm1_type': self._alarm_1_type,
-                    'alarm1_severity': self._alarm_1_severity,
-                    'alarm1_duration': self._alarm_1_duration})
+                    'pump_protection_duration': self._pump_protec_duration})
         data.update ({'heat_level': self._heat_level,
                       'wattage': self._wattage,
                       'rssi': self._rssi,
@@ -683,6 +663,12 @@ class NeviwebThermostat(ClimateEntity):
                       'backlight': self._backlight,
                       'time_format': self._time_format,
                       'temperature_format': self._temperature_format,
+                      'alarm0_type': self._alarm_0_type,
+                      'alarm0_severity': self._alarm_0_severity,
+                      'alarm0_duration': self._alarm_0_duration,
+                      'alarm1_type': self._alarm_1_type,
+                      'alarm1_severity': self._alarm_1_severity,
+                      'alarm1_duration': self._alarm_1_duration,
                       'id': self._id})
         return data
 
