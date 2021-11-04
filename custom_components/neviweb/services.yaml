@@ -169,3 +169,13 @@ set_switch_away_mode:
     awayMode:
       description: Select between those modes, «auto», «manualOn», «manualOff» and «none».
       example: auto
+
+set_air_floor_mode:
+  description: Set floor thermostat control mode; Air or Floor.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb floor thermostat.
+      example: "climate.neviweb_climate_plancher_cuisine"
+    airFloorMode:
+      description: Set to "airByFloor" for ambiant temperature or to "floor" for floor temperature.
+      example: "floor"
