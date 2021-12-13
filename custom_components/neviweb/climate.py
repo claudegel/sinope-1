@@ -618,7 +618,7 @@ class NeviwebThermostat(ClimateEntity):
         return DEVICE_CLASS_TEMPERATURE
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
         if self._is_floor:
