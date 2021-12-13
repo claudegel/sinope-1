@@ -269,7 +269,7 @@ class NeviwebSwitch(SwitchEntity):
         self._client.set_brightness(self._id, 0)
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         return {'operation_mode': self.operation_mode,
                 'rssi': self._rssi,
