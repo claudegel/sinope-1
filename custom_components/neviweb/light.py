@@ -352,7 +352,7 @@ class NeviwebLight(LightEntity):
         return "light"
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
         if self._is_dimmable and self._brightness_pct:
