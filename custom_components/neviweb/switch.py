@@ -19,7 +19,6 @@ from homeassistant.components.switch import (
 
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    DEVICE_CLASS_POWER,
 )
 
 from homeassistant.helpers import (
@@ -33,6 +32,8 @@ from homeassistant.helpers import (
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
+
+from homeassistant.components.sensor import SensorDeviceClass
 
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
@@ -253,7 +254,7 @@ class NeviwebSwitch(SwitchEntity):
     @property
     def device_class(self):
         """Return the device class of this entity."""
-        return DEVICE_CLASS_POWER
+        return SensorDeviceClass.POWER
 
     @property  
     def is_on(self):
