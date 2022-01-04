@@ -631,7 +631,7 @@ class NeviwebThermostat(ClimateEntity):
         """Return the state attributes."""
         data = {}
         if not self._is_floor and not self._is_low_voltage:
-            data.update({'eco_temp': self._shed_stat_temp,
+            data.update({'eco_status': self._shed_stat_temp,
                     'eco_power': self._shed_stat_power,
                     'eco_optout': self._shed_stat_optout})
         if self._is_floor:
