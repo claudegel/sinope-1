@@ -54,6 +54,8 @@ ATTR_AUX_CYCLE_LENGTH = "auxOutputCycleLength"
 ATTR_PUMP_PROTEC = "pumpProtection"
 ATTR_ALARM_0 = "alarmActive0"
 ATTR_ALARM_1 = "alarmActive1"
+ATTR_SHED_STATUS = "shedStatus"
+ATTR_SHED_PLANNING = "shedDayPlanningStatus"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"

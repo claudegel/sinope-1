@@ -48,6 +48,7 @@ from .const import (
     ATTR_TIMER,
     ATTR_OCCUPANCY,
     ATTR_AWAY_MODE,
+    ATTR_SHED_PLANNING,
     MODE_AUTO,
     MODE_MANUAL,
     SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -69,6 +70,7 @@ UPDATE_ATTRIBUTES = [
     ATTR_KEYPAD,
     ATTR_OCCUPANCY,
     ATTR_AWAY_MODE,
+    ATTR_SHED_PLANNING,
 ]
 
 IMPLEMENTED_DEVICE_TYPES = [120] #power control device
@@ -193,6 +195,7 @@ class NeviwebSwitch(SwitchEntity):
         self._occupancy = None
         self._away_mode = None
         self._keypad = "unlocked"
+        self._shed_planning_status = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -200,7 +203,7 @@ class NeviwebSwitch(SwitchEntity):
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES)
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
+#        device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -218,6 +221,8 @@ class NeviwebSwitch(SwitchEntity):
                 self._occupancy = device_data[ATTR_OCCUPANCY]
                 self._away_mode = device_data[ATTR_AWAY_MODE]["value"]["action"]
                 self._keypad = device_data[ATTR_KEYPAD]
+                if ATTR_SHED_PLANNING in device_data:
+                    self._shed_planning_status = device_data[ATTR_SHED_PLANNING]
                 self._today_energy_kwh = device_daily_stats[0] / 1000 if \
                     device_daily_stats is not None else 0
                 return
@@ -273,6 +278,7 @@ class NeviwebSwitch(SwitchEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         return {'operation_mode': self.operation_mode,
+                'eco_status': self._shed_planning_status,
                 'rssi': self._rssi,
                 'timer': self._timer,
                 'occupancy': self._occupancy,

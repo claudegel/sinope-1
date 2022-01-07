@@ -92,6 +92,7 @@ from .const import (
     ATTR_PUMP_PROTEC,
     ATTR_ALARM_0,
     ATTR_ALARM_1,
+    ATTR_SHED_STATUS,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -456,6 +457,9 @@ class NeviwebThermostat(ClimateEntity):
         self._alarm_1_severity = None
         self._alarm_1_duration = None
         self._time_format = "24h"
+        self._shed_stat_temp = 0
+        self._shed_stat_power = 0
+        self._shed_stat_optout = 0
         self._temperature_format = TEMP_CELSIUS
         self._is_low_voltage = device_info["signature"]["type"] in \
             IMPLEMENTED_LOW_VOLTAGE
@@ -465,10 +469,10 @@ class NeviwebThermostat(ClimateEntity):
 
     def update(self):
         """Get the latest data from Neviweb and update the state."""
-        if not self._is_low_voltage:
-            WATT_ATTRIBUTE = [ATTR_WATTAGE]
+        if not self._is_low_voltage and not self._is_floor:
+            ECO_ATTRIBUTE = [ATTR_SHED_STATUS]
         else:
-            WATT_ATTRIBUTE = []
+            ECO_ATTRIBUTE = []
         if self._is_floor:
             FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
                                ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_ALARM_0, ATTR_ALARM_1]
@@ -479,10 +483,10 @@ class NeviwebThermostat(ClimateEntity):
                              ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_CYCLE_LENGTH, \
                              ATTR_AUX_CYCLE_LENGTH, ATTR_PUMP_PROTEC, ATTR_ALARM_0, ATTR_ALARM_1, ATTR_WATTAGE_OVERRIDE]
         else:
-            LOW_ATTRIBUTE = []
+            LOW_ATTRIBUTE = [ATTR_WATTAGE]
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + WATT_ATTRIBUTE + FLOOR_ATTRIBUTE + LOW_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + ECO_ATTRIBUTE + FLOOR_ATTRIBUTE + LOW_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -579,6 +583,10 @@ class NeviwebThermostat(ClimateEntity):
                     self._alarm_1_type = device_data[ATTR_ALARM_1]["type"]
                     self._alarm_1_severity = device_data[ATTR_ALARM_1]["severity"]
                     self._alarm_1_duration = device_data[ATTR_ALARM_1]["duration"]
+                if ATTR_SHED_STATUS in device_data:
+                    self._shed_stat_temp = device_data[ATTR_SHED_STATUS]["temperature"]
+                    self._shed_stat_power = device_data[ATTR_SHED_STATUS]["power"]
+                    self._shed_stat_optout = device_data[ATTR_SHED_STATUS]["optOut"]
                 return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
@@ -622,6 +630,10 @@ class NeviwebThermostat(ClimateEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
+        if not self._is_floor and not self._is_low_voltage:
+            data.update({'eco_status': self._shed_stat_temp,
+                    'eco_power': self._shed_stat_power,
+                    'eco_optout': self._shed_stat_optout})
         if self._is_floor:
             data.update({'sensor_mode': self._floor_mode,
                     'slave_status': self._aux_heat,
