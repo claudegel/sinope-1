@@ -147,7 +147,7 @@ Add thoses lines to your `configuration.yaml` file
 This will set default log level to warning for all your components, except for Neviweb which will display more detailed messages.
 
 ## Customization
-Install Custom UI and add the following in your code:
+Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your code:
 
 Icons for heat level: create folder www in the root folder .homeassistant/www
 copy the six icons there. You can find them under local/www
