@@ -859,12 +859,12 @@ class NeviwebThermostat(ClimateEntity):
             self._client.set_setpoint_mode(self._id, MODE_AUTO)
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
+        self._operation_mode = hvac_mode
 
     def set_preset_mode(self, preset_mode):
         """Activate a preset."""
         if preset_mode == self.preset_mode:
             return
-
         if preset_mode == PRESET_AWAY:
             self._client.set_setpoint_mode(self._id, MODE_AWAY)
         elif preset_mode == PRESET_BYPASS:
@@ -875,3 +875,4 @@ class NeviwebThermostat(ClimateEntity):
             self.set_hvac_mode(self.hvac_mode)
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
+        self._operation_mode = preset_mode
