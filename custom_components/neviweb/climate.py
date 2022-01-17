@@ -230,7 +230,7 @@ async def async_setup_platform(
 ):
     """Set up the neviweb thermostats."""
     data = hass.data[DOMAIN]
-    
+
     entities = []
     for device_info in data.neviweb_client.gateway_data:
         if "signature" in device_info and \
@@ -408,7 +408,6 @@ async def async_setup_platform(
         set_air_floor_mode_service,
         schema=SET_AIR_FLOOR_MODE_SCHEMA,
     )
-        
 
 class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
