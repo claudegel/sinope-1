@@ -120,7 +120,7 @@ async def async_setup_platform(
             device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
             entities.append(NeviwebSwitch(data, device_info, device_name))
-            
+
     async_add_entities(entities, True)
 
     def set_switch_keypad_lock_service(service):
