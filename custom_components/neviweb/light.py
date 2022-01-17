@@ -297,7 +297,7 @@ class NeviwebLight(LightEntity):
         if "error" not in device_data:
             if "errorCode" not in device_data:
                 self._brightness_pct = device_data[ATTR_INTENSITY] if \
-                    device_data[ATTR_INTENSITY] is not None else 0.0
+                    device_data[ATTR_INTENSITY] is not None else 0
                 self._operation_mode = device_data[ATTR_POWER_MODE] if \
                     device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 self._rssi = device_data[ATTR_RSSI]
@@ -389,10 +389,12 @@ class NeviwebLight(LightEntity):
         elif self._is_dimmable:
             brightness_pct = 101 # Sets the light to last known brightness.
         self._client.set_brightness(self._id, brightness_pct)
+        self._brightness_pct = brightness_pct
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
         self._client.set_brightness(self._id, 0)
+        self._brightness_pct = 0
  
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, «locked» = locked, «unlocked» = unlocked"""

@@ -230,7 +230,7 @@ async def async_setup_platform(
 ):
     """Set up the neviweb thermostats."""
     data = hass.data[DOMAIN]
-    
+
     entities = []
     for device_info in data.neviweb_client.gateway_data:
         if "signature" in device_info and \
@@ -408,7 +408,6 @@ async def async_setup_platform(
         set_air_floor_mode_service,
         schema=SET_AIR_FLOOR_MODE_SCHEMA,
     )
-        
 
 class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
@@ -859,12 +858,12 @@ class NeviwebThermostat(ClimateEntity):
             self._client.set_setpoint_mode(self._id, MODE_AUTO)
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
+        self._operation_mode = hvac_mode
 
     def set_preset_mode(self, preset_mode):
         """Activate a preset."""
         if preset_mode == self.preset_mode:
             return
-
         if preset_mode == PRESET_AWAY:
             self._client.set_setpoint_mode(self._id, MODE_AWAY)
         elif preset_mode == PRESET_BYPASS:
@@ -875,3 +874,4 @@ class NeviwebThermostat(ClimateEntity):
             self.set_hvac_mode(self.hvac_mode)
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
+        self._operation_mode = preset_mode
