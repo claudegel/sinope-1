@@ -211,7 +211,7 @@ class NeviwebSwitch(SwitchEntity):
         if "error" not in device_data:
             if "errorCode" not in device_data:
                 self._brightness = device_data[ATTR_INTENSITY] if \
-                    device_data[ATTR_INTENSITY] is not None else 0.0
+                    device_data[ATTR_INTENSITY] is not None else 0
                 self._operation_mode = device_data[ATTR_POWER_MODE] if \
                     device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]["value"]
@@ -269,10 +269,12 @@ class NeviwebSwitch(SwitchEntity):
     def turn_on(self, **kwargs):
         """Turn the device on."""
         self._client.set_brightness(self._id, 100)
-        
+        self._brightness = 100
+
     def turn_off(self, **kwargs):
         """Turn the device off."""
         self._client.set_brightness(self._id, 0)
+        self._brightness = 0
 
     @property
     def extra_state_attributes(self):
@@ -286,7 +288,7 @@ class NeviwebSwitch(SwitchEntity):
                 'keypad': self._keypad,
                 'wattage': self._wattage,
                 'id': self._id}
-       
+
     @property
     def operation_mode(self):
         return self._operation_mode
@@ -300,7 +302,7 @@ class NeviwebSwitch(SwitchEntity):
     def today_energy_kwh(self):
         """Return the today total energy usage in kWh."""
         return self._today_energy_kwh
-    
+
     @property
     def is_standby(self):
         """Return true if device is in standby."""
