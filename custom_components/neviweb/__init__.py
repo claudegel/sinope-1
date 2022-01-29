@@ -271,7 +271,7 @@ class NeviwebClient(object):
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
-                raise PyNeviwebError("Session expired")
+#                raise PyNeviwebError("Session expired")
         return data
 
     def get_device_daily_stats(self, device_id):
