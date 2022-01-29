@@ -41,7 +41,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.7.7'
+VERSION = '1.8.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -127,6 +127,11 @@ class NeviwebClient(object):
         self.__get_gateway_data()
 
     def update(self):
+        self.__get_gateway_data()
+
+    def reconnect(self):
+        self.__post_login_page()
+        self.__get_network()
         self.__get_gateway_data()
 
     def __post_login_page(self):
@@ -271,7 +276,7 @@ class NeviwebClient(object):
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
-                raise PyNeviwebError("Session expired")
+#                raise PyNeviwebError("Session expired")
         return data
 
     def get_device_daily_stats(self, device_id):
