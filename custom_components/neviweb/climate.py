@@ -594,7 +594,10 @@ class NeviwebThermostat(ClimateEntity):
                     _LOGGER.warning("Unknown errorCode, device: %s, error: %s", self._name, device_data)
             return
         else:
-            if device_data["error"]["code"] == "DVCCOMMTO":  
+            if device_data["error"]["code"] == "USRSESSEXP":
+                _LOGGER.warning("Session expired... reconnecting...")
+                self._client.reconnect()
+            elif device_data["error"]["code"] == "DVCCOMMTO":  
                 _LOGGER.warning("Cannot update %s: %s. Device is busy or does not respond quickly enough.", self._name, device_data)
             elif device_data["error"]["code"] == "SVCINVREQ":
                 _LOGGER.warning("Invalid or malformed request to Neviweb, %s:",  device_data)
