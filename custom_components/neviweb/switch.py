@@ -190,6 +190,7 @@ class NeviwebSwitch(SwitchEntity):
         self._operation_mode = 1
         self._current_power_w = None
         self._today_energy_kwh = None
+        self._hour_energy_kwh = None
         self._rssi = None
         self._timer = 0
         self._occupancy = None
@@ -203,7 +204,6 @@ class NeviwebSwitch(SwitchEntity):
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES)
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -223,15 +223,11 @@ class NeviwebSwitch(SwitchEntity):
                 self._keypad = device_data[ATTR_KEYPAD]
                 if ATTR_SHED_PLANNING in device_data:
                     self._shed_planning_status = device_data[ATTR_SHED_PLANNING]
-                self._today_energy_kwh = device_daily_stats[0] / 1000 if \
-                    device_daily_stats is not None else 0
-                return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("Error in reading device %s: (%s), too slow to respond or busy.", self._name, device_data)
                 else:
                     _LOGGER.warning("Unknown errorCode, device: %s, error: %s", self._name, device_data)
-            return
         else:
             if device_data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.warning("Session expired... reconnecting...")
@@ -247,7 +243,11 @@ class NeviwebSwitch(SwitchEntity):
             elif device_data["error"]["code"] == "SVCERR":
                 _LOGGER.warning("Device %s statistics unavailables, %s:", self._name, device_data)
             else:
-                _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)    
+                _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
+        self._today_energy_kwh = device_daily_stats[0] / 1000
+        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+        self._hour_energy_kwh = device_hourly_stats[0] / 1000
 
     @property
     def unique_id(self):
@@ -290,6 +290,8 @@ class NeviwebSwitch(SwitchEntity):
                 'away_mode': self._away_mode,
                 'keypad': self._keypad,
                 'wattage': self._wattage,
+                'hour_kwh': self._hour_energy_kwh,
+                'day_kwh': self._today_energy_kwh,
                 'id': self._id}
 
     @property
