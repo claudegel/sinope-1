@@ -132,6 +132,20 @@ two attributes are added to track energy usage for devices:
 - hour_kwh: kwh used for last hour
 - day_kwh: kwh used for last day
 
+### Track energy consumption in HA Energy dashboard
+
+When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/)
+```yaml
+template:
+  - sensor:
+    - name: Kitchen energy usage
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total
+      state: >
+        {{ state_attr("climate.neviweb_climate_kitchen","hour_kwh") }}
+```
+
 ## Troubleshooting
 If you get a stack trace related to a Neviweb component in your `home-assistant.log` file, you can fill an issue in this repository.
 
