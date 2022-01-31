@@ -272,6 +272,8 @@ class NeviwebLight(LightEntity):
         self._client = data.neviweb_client
         self._id = device_info["id"]
         self._wattage_override = 0
+        self._today_energy_kwh = None
+        self._hour_energy_kwh = None
         self._brightness_pct = 0
         self._operation_mode = 1
         self._rssi = None
@@ -308,13 +310,11 @@ class NeviwebLight(LightEntity):
                 self._timer = device_data[ATTR_TIMER]
                 self._led_on = str(device_data[ATTR_LED_ON]["intensity"])+","+str(device_data[ATTR_LED_ON]["red"])+","+str(device_data[ATTR_LED_ON]["green"])+","+str(device_data[ATTR_LED_ON]["blue"])
                 self._led_off = str(device_data[ATTR_LED_OFF]["intensity"])+","+str(device_data[ATTR_LED_OFF]["red"])+","+str(device_data[ATTR_LED_OFF]["green"])+","+str(device_data[ATTR_LED_OFF]["blue"])
-                return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("Error in reading device %s: (%s), too slow to respond or busy.", self._name, device_data)
                 else:
                     _LOGGER.warning("Unknown errorCode, device: %s, error: %s", self._name, device_data)
-            return
         else:
             if device_data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.warning("Session expired... reconnecting...")
@@ -330,7 +330,11 @@ class NeviwebLight(LightEntity):
             elif device_data["error"]["code"] == "SVCERR":
                 _LOGGER.warning("Device %s statistics unavailables, %s:", self._name, device_data)
             else:
-                _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)   
+                _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
+        self._today_energy_kwh = device_daily_stats[0] / 1000
+        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+        self._hour_energy_kwh = device_hourly_stats[0] / 1000
         
     @property
     def supported_features(self):
@@ -368,6 +372,8 @@ class NeviwebLight(LightEntity):
                      'occupancy': self._occupancy,
                      'away_mode': self._away_mode,
                      'wattage_override': self._wattage_override,
+                     'hour_kwh': self._hour_energy_kwh,
+                     'day_kwh': self._today_energy_kwh,
                      'led_on': self._led_on,
                      'led_off': self._led_off,
                      'id': self._id})
