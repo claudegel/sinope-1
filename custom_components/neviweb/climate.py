@@ -459,6 +459,8 @@ class NeviwebThermostat(ClimateEntity):
         self._shed_stat_temp = 0
         self._shed_stat_power = 0
         self._shed_stat_optout = 0
+        self._today_energy_kwh = None
+        self._hour_energy_kwh = None
         self._temperature_format = TEMP_CELSIUS
         self._is_low_voltage = device_info["signature"]["type"] in \
             IMPLEMENTED_LOW_VOLTAGE
@@ -586,13 +588,11 @@ class NeviwebThermostat(ClimateEntity):
                     self._shed_stat_temp = device_data[ATTR_SHED_STATUS]["temperature"]
                     self._shed_stat_power = device_data[ATTR_SHED_STATUS]["power"]
                     self._shed_stat_optout = device_data[ATTR_SHED_STATUS]["optOut"]
-                return
             else:
                 if device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("Error in reading device %s: (%s), too slow to respond or busy.", self._name, device_data)
                 else:
                     _LOGGER.warning("Unknown errorCode, device: %s, error: %s", self._name, device_data)
-            return
         else:
             if device_data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.warning("Session expired... reconnecting...")
@@ -607,6 +607,10 @@ class NeviwebThermostat(ClimateEntity):
                 _LOGGER.warning("Device %s statistics unavailables, %s:", self._name, device_data)
             else:
                 _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
+        self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
+        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+        self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
 
     @property
     def unique_id(self):
@@ -667,6 +671,8 @@ class NeviwebThermostat(ClimateEntity):
                     'pump_protection_duration': self._pump_protec_duration})
         data.update ({'heat_level': self._heat_level,
                       'wattage': self._wattage,
+                      'hour_kwh': self._hour_energy_kwh,
+                      'day_kwh': self._today_energy_kwh,
                       'rssi': self._rssi,
                       'alarm': self._alarm,
                       'keypad': self._keypad,
