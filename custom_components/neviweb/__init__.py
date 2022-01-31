@@ -41,7 +41,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.8.0'
+VERSION = '1.8.5'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -294,7 +294,7 @@ class NeviwebClient(object):
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
-        _LOGGER.debug("daily stat = %s", data)
+#        _LOGGER.debug("daily stat = %s", data)
         if "values" in data:
             return data["values"]
         return []
