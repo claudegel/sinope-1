@@ -126,6 +126,12 @@ Three attributes have been added to know that peak period is comming:
 
 It is then possible to make an automation to set all devices ready for peak period.
 
+## Statistic for energy
+
+two attributes are added to track energy usage for devices:
+- hour_kwh: kwh used for last hour
+- day_kwh: kwh used for last day
+
 ## Troubleshooting
 If you get a stack trace related to a Neviweb component in your `home-assistant.log` file, you can fill an issue in this repository.
 
