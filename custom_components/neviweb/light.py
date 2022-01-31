@@ -332,9 +332,9 @@ class NeviwebLight(LightEntity):
             else:
                 _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
         device_daily_stats = self._client.get_device_daily_stats(self._id)
-        self._today_energy_kwh = device_daily_stats[0] / 1000
+        self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
         device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-        self._hour_energy_kwh = device_hourly_stats[0] / 1000
+        self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
         
     @property
     def supported_features(self):
