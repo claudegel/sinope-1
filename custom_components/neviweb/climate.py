@@ -607,10 +607,16 @@ class NeviwebThermostat(ClimateEntity):
                 _LOGGER.warning("Device %s statistics unavailables, %s:", self._name, device_data)
             else:
                 _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
-        self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
         device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-        self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
+        if device_hourly_stats is not None:
+            self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
+        else:
+            _LOGGER.warning("Got None for device_hourly_stats")
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
+        if device_daily_stats is not None:
+            self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
+        else:
+            _LOGGER.warning("Got None for device_daily_stats")
 
     @property
     def unique_id(self):
