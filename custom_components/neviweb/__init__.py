@@ -297,7 +297,7 @@ class NeviwebClient(object):
 #        _LOGGER.debug("daily stat = %s", data)
         if "values" in data:
             return data["values"]
-        return []
+        return None
 
     def get_device_hourly_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 24 hours."""
@@ -316,7 +316,7 @@ class NeviwebClient(object):
         data = raw_res.json()
         if "values" in data:
             return data["values"]
-        return []
+        return None
 
     def set_brightness(self, device_id, brightness):
         """Set device brightness."""
