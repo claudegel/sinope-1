@@ -132,6 +132,8 @@ two attributes are added to track energy usage for devices:
 - hour_kwh: kwh used for last hour
 - day_kwh: kwh used for last day
 
+They are polled from Neviweb every 30 minutes.
+
 ### Track energy consumption in HA Energy dashboard
 
 When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/)
