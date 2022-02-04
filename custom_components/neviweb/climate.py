@@ -462,6 +462,7 @@ class NeviwebThermostat(ClimateEntity):
         self._today_energy_kwh = None
         self._hour_energy_kwh = None
         self._temperature_format = TEMP_CELSIUS
+        self._energy_stat_time = 0
         self._is_low_voltage = device_info["signature"]["type"] in \
             IMPLEMENTED_LOW_VOLTAGE
         self._is_floor = device_info["signature"]["type"] in \
@@ -607,16 +608,19 @@ class NeviwebThermostat(ClimateEntity):
                 _LOGGER.warning("Device %s statistics unavailables, %s:", self._name, device_data)
             else:
                 _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
-        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-        if device_hourly_stats is not None:
-            self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
-        else:
-            _LOGGER.warning("Got None for device_hourly_stats")
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
-        if device_daily_stats is not None:
-            self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
-        else:
-            _LOGGER.warning("Got None for device_daily_stats")
+        if start - self._energy_stat_time > 1800:
+            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+            if device_hourly_stats is not None:
+                self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
+            else:
+                _LOGGER.warning("Got None for device_hourly_stats")
+            device_daily_stats = self._client.get_device_daily_stats(self._id)
+            if device_daily_stats is not None:
+                self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
+            else:
+                _LOGGER.warning("Got None for device_daily_stats")
+            self._energy_stat_time = time.time()
+#            _LOGGER.warning("Done energy polling %s", self._energy_stat_time)
 
     @property
     def unique_id(self):
