@@ -462,7 +462,7 @@ class NeviwebThermostat(ClimateEntity):
         self._today_energy_kwh = None
         self._hour_energy_kwh = None
         self._temperature_format = TEMP_CELSIUS
-        self._energy_stat_time = 0
+        self._energy_stat_time = -15
         self._is_low_voltage = device_info["signature"]["type"] in \
             IMPLEMENTED_LOW_VOLTAGE
         self._is_floor = device_info["signature"]["type"] in \
