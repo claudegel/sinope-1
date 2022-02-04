@@ -283,6 +283,7 @@ class NeviwebLight(LightEntity):
         self._timer = 0
         self._led_on = "0,0,0,0"
         self._led_off = "0,0,0,0"
+        self._energy_stat_time = 0
         self._is_dimmable = device_info["signature"]["type"] in \
             DEVICE_TYPE_DIMMER
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -331,16 +332,19 @@ class NeviwebLight(LightEntity):
                 _LOGGER.warning("Device %s statistics unavailables, %s:", self._name, device_data)
             else:
                 _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
-        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-        if device_hourly_stats is not None:
-            self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
-        else:
-            _LOGGER.warning("Got None for device_hourly_stats")
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
-        if device_daily_stats is not None:
-            self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
-        else:
-            _LOGGER.warning("Got None for device_daily_stats")
+        if start - self._energy_stat_time > 1800:
+            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+            if device_hourly_stats is not None:
+                self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
+            else:
+                _LOGGER.warning("Got None for device_hourly_stats")
+            device_daily_stats = self._client.get_device_daily_stats(self._id)
+            if device_daily_stats is not None:
+                self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
+            else:
+                _LOGGER.warning("Got None for device_daily_stats")
+            self._energy_stat_time = time.time()
+#            _LOGGER.warning("Done energy polling %s", self._energy_stat_time)
         
     @property
     def supported_features(self):
