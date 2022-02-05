@@ -256,8 +256,9 @@ class NeviwebSwitch(SwitchEntity):
                 self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
             else:
                 _LOGGER.warning("Got None for device_daily_stats")
-        self._energy_stat_time = time.time()
-#        _LOGGER.warning("Done energy polling %s", self._energy_stat_time)
+            self._energy_stat_time = time.time()
+        if self._energy_stat_time == 0:
+            self._energy_stat_time = start
 
     @property
     def unique_id(self):
