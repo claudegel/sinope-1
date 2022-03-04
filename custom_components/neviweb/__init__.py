@@ -38,6 +38,7 @@ from .const import (
     ATTR_AWAY_MODE,
     ATTR_SIGNATURE,
     ATTR_FLOOR_MODE,
+    ATTR_AUX_CONFIG,
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
@@ -411,6 +412,12 @@ class NeviwebClient(object):
         """Set device setpoint maximum temperature."""
         data = {ATTR_ROOM_SETPOINT_MAX: temp}
         _LOGGER.debug("setpointMax.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_heat(self, device_id, heat):
+        """Set floor and low voltage thermostats auxiliary heating slave/off."""
+        data = {ATTR_AUX_CONFIG: heat}
+        _LOGGER.debug("aux_heat.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_air_floor_mode(self, device_id, mode):
