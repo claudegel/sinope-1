@@ -26,6 +26,7 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE,
+    SUPPORT_AUX_HEAT,
     PRESET_AWAY,
     PRESET_NONE,
     CURRENT_HVAC_HEAT,
@@ -112,6 +113,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
+SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_AUX_HEAT)
 
 DEFAULT_NAME = "neviweb climate"
 
@@ -708,7 +710,15 @@ class NeviwebThermostat(ClimateEntity):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        return SUPPORT_FLAGS
+        if self._is_floor or self._is_low_voltage:
+            return SUPPORT_AUX_FLAGS
+        else:
+            return SUPPORT_FLAGS
+
+    @property
+    def is_aux_heat(self):
+        """Return the min temperature."""
+        return self._aux_heat == "slave"
 
     @property
     def min_temp(self):
@@ -896,3 +906,15 @@ class NeviwebThermostat(ClimateEntity):
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
         self._operation_mode = preset_mode
+
+    def turn_aux_heat_on(self):
+        """Turn auxiliary heater on/off."""
+        self._client.set_aux_heat(
+            self._id, "slave")
+        self._aux_heat = "slave"
+
+    def turn_aux_heat_off(self):
+        """Turn auxiliary heater on/off."""
+        self._client.set_aux_heat(
+            self._id, "off")
+        self._aux_heat = "off"
