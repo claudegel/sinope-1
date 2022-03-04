@@ -155,65 +155,65 @@ IMPLEMENTED_DEVICE_TYPES = IMPLEMENTED_THERMOSTAT + IMPLEMENTED_LOW_VOLTAGE + IM
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_DISPLAY_2): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_DISPLAY_2): cv.string,
     }
 )
 
 SET_BACKLIGHT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_BACKLIGHT): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=100)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_BACKLIGHT): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
     }
 )
 
 SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_KEYPAD): cv.string,
     }
 )
 
 SET_TIME_FORMAT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TIME): vol.All(
-             vol.Coerce(int), vol.Range(min=12, max=24)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.All(
+            vol.Coerce(int), vol.Range(min=12, max=24)
+        ),
     }
 )
 
 SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TEMP): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TEMP): cv.string,
     }
 )
 
 SET_EARLY_START_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_EARLY_START): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_EARLY_START): cv.string,
     }
 )
 
 SET_SETPOINT_MAX_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(
-             vol.Coerce(float), vol.Range(min=10, max=30)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(
+            vol.Coerce(float), vol.Range(min=10, max=30)
+        ),
     }
 )
 
 SET_SETPOINT_MIN_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(
-             vol.Coerce(float), vol.Range(min=5, max=24)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(
+            vol.Coerce(float), vol.Range(min=5, max=24)
+        ),
     }
 )
 
@@ -479,13 +479,13 @@ class NeviwebThermostat(ClimateEntity):
             ECO_ATTRIBUTE = []
         if self._is_floor:
             FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
-                               ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_ALARM_0, ATTR_ALARM_1]
+                            ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_ALARM_0, ATTR_ALARM_1]
         else:
             FLOOR_ATTRIBUTE = []
         if self._is_low_voltage:
             LOW_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
-                             ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_CYCLE_LENGTH, \
-                             ATTR_AUX_CYCLE_LENGTH, ATTR_PUMP_PROTEC, ATTR_ALARM_0, ATTR_ALARM_1, ATTR_WATTAGE_OVERRIDE]
+                            ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_CYCLE_LENGTH, \
+                            ATTR_AUX_CYCLE_LENGTH, ATTR_PUMP_PROTEC, ATTR_ALARM_0, ATTR_ALARM_1, ATTR_WATTAGE_OVERRIDE]
         else:
             LOW_ATTRIBUTE = [ATTR_WATTAGE]
         start = time.time()
@@ -684,27 +684,27 @@ class NeviwebThermostat(ClimateEntity):
                     'pump_protection_freq': self._pump_protec_freq,
                     'pump_protection_duration': self._pump_protec_duration})
         data.update ({'heat_level': self._heat_level,
-                      'wattage': self._wattage,
-                      'hour_kwh': self._hour_energy_kwh,
-                      'day_kwh': self._today_energy_kwh,
-                      'rssi': self._rssi,
-                      'alarm': self._alarm,
-                      'keypad': self._keypad,
-                      'away_setpoint': self._away_temp,
-                      'setpoint_max': self._max_temp,
-                      'setpoint_min': self._min_temp,
-                      'early_start': self._early_start,
-                      'sec._display': self._display_2,
-                      'backlight': self._backlight,
-                      'time_format': self._time_format,
-                      'temperature_format': self._temperature_format,
-                      'alarm0_type': self._alarm_0_type,
-                      'alarm0_severity': self._alarm_0_severity,
-                      'alarm0_duration': self._alarm_0_duration,
-                      'alarm1_type': self._alarm_1_type,
-                      'alarm1_severity': self._alarm_1_severity,
-                      'alarm1_duration': self._alarm_1_duration,
-                      'id': self._id})
+                    'wattage': self._wattage,
+                    'hour_kwh': self._hour_energy_kwh,
+                    'day_kwh': self._today_energy_kwh,
+                    'rssi': self._rssi,
+                    'alarm': self._alarm,
+                    'keypad': self._keypad,
+                    'away_setpoint': self._away_temp,
+                    'setpoint_max': self._max_temp,
+                    'setpoint_min': self._min_temp,
+                    'early_start': self._early_start,
+                    'sec._display': self._display_2,
+                    'backlight': self._backlight,
+                    'time_format': self._time_format,
+                    'temperature_format': self._temperature_format,
+                    'alarm0_type': self._alarm_0_type,
+                    'alarm0_severity': self._alarm_0_severity,
+                    'alarm0_duration': self._alarm_0_duration,
+                    'alarm1_type': self._alarm_1_type,
+                    'alarm1_severity': self._alarm_1_severity,
+                    'alarm1_duration': self._alarm_1_duration,
+                    'id': self._id})
         return data
 
     @property
