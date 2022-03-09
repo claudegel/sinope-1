@@ -91,7 +91,6 @@ from .const import (
     ATTR_AUX_CONFIG,
     ATTR_AUX_CYCLE_LENGTH,
     ATTR_PUMP_PROTEC,
-    ATTR_ALARM_0,
     ATTR_ALARM_1,
     ATTR_SHED_STATUS,
     MODE_AUTO,
@@ -130,7 +129,6 @@ UPDATE_ATTRIBUTES = [
     ATTR_EARLY_START,
     ATTR_KEYPAD,
     ATTR_DISPLAY_2,
-    ATTR_BACKLIGHT,
     ATTR_TIME,
     ATTR_TEMP,
 ]
@@ -427,7 +425,6 @@ class NeviwebThermostat(ClimateEntity):
         self._cur_temp = None
         self._cur_temp_before = None
         self._rssi = None
-        self._alarm = None
         self._early_start = None
         self._operation_mode = None
         self._heat_level = 0
@@ -439,6 +436,7 @@ class NeviwebThermostat(ClimateEntity):
         self._floor_min = None
         self._floor_setpoint = None
         self._floor_temperature = None
+        self._floor_temp_error = None
         self._floor_setpoint_max = None
         self._floor_setpoint_min = None
         self._away_temp = None
@@ -474,18 +472,18 @@ class NeviwebThermostat(ClimateEntity):
     def update(self):
         """Get the latest data from Neviweb and update the state."""
         if not self._is_low_voltage and not self._is_floor:
-            ECO_ATTRIBUTE = [ATTR_SHED_STATUS]
+            ECO_ATTRIBUTE = [ATTR_SHED_STATUS, ATTR_BACKLIGHT]
         else:
             ECO_ATTRIBUTE = []
         if self._is_floor:
             FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
-                            ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_ALARM_0, ATTR_ALARM_1]
+                            ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_ALARM_1]
         else:
             FLOOR_ATTRIBUTE = []
         if self._is_low_voltage:
             LOW_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
                             ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_CYCLE_LENGTH, \
-                            ATTR_AUX_CYCLE_LENGTH, ATTR_PUMP_PROTEC, ATTR_ALARM_0, ATTR_ALARM_1, ATTR_WATTAGE_OVERRIDE]
+                            ATTR_AUX_CYCLE_LENGTH, ATTR_PUMP_PROTEC, ATTR_ALARM_1, ATTR_WATTAGE_OVERRIDE]
         else:
             LOW_ATTRIBUTE = [ATTR_WATTAGE]
         start = time.time()
@@ -508,7 +506,6 @@ class NeviwebThermostat(ClimateEntity):
                 else:
                     _LOGGER.debug("Attribute roomSetpointAway is missing: %s", device_data)
                 self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                self._alarm = device_data[ATTR_ALARM]["type"]
                 self._rssi = device_data[ATTR_RSSI]
                 self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                 self._min_temp = float(device_data[ATTR_ROOM_SETPOINT_MIN])
@@ -520,8 +517,8 @@ class NeviwebThermostat(ClimateEntity):
                 self._time_format = device_data[ATTR_TIME]
                 if ATTR_BACKLIGHT in device_data:
                     self._backlight = device_data[ATTR_BACKLIGHT]
-                else:
-                    _LOGGER.debug("Attribute backlightIntensityIdle is missing: %s", device_data)
+#                else:
+#                    _LOGGER.debug("Attribute backlightIntensityIdle is missing: %s", device_data)
                 if not self._is_low_voltage:
                     self._wattage = device_data[ATTR_WATTAGE]["value"]
                 else:
@@ -531,7 +528,8 @@ class NeviwebThermostat(ClimateEntity):
                         self._floor_mode = device_data[ATTR_FLOOR_MODE]
                         if ATTR_FLOOR_SETPOINT in device_data:
                             self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
-                        self._floor_temperature = device_data[ATTR_FLOOR_TEMP]
+                        self._floor_temperature = device_data[ATTR_FLOOR_TEMP]["value"]
+                        self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
                         self._aux_heat = device_data[ATTR_AUX_CONFIG]
                         self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
                         self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
@@ -542,8 +540,8 @@ class NeviwebThermostat(ClimateEntity):
                         self._sensor_type = device_data[ATTR_FLOOR_SENSOR_TYPE]
                         if ATTR_BACKLIGHT_MODE in device_data:
                             self._backlight = device_data[ATTR_BACKLIGHT_MODE]
-                        else:
-                            _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
+#                        else:
+#                            _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
                 if self._is_low_voltage:
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     if ATTR_FLOOR_SETPOINT in device_data:
@@ -551,7 +549,8 @@ class NeviwebThermostat(ClimateEntity):
                     else:
                         self._floor_setpoint = None
                     if ATTR_FLOOR_TEMP in device_data:
-                        self._floor_temperature = device_data[ATTR_FLOOR_TEMP]
+                        self._floor_temperature = device_data[ATTR_FLOOR_TEMP]["value"]
+                        self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
                     else:
                         self._floor_temperature = None
                     self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
@@ -577,12 +576,12 @@ class NeviwebThermostat(ClimateEntity):
                         self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
                     if ATTR_BACKLIGHT_MODE in device_data:
                         self._backlight = device_data[ATTR_BACKLIGHT_MODE]
-                    else:
-                        _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
-                if ATTR_ALARM_0 in device_data:
-                    self._alarm_0_type = device_data[ATTR_ALARM_0]["type"]
-                    self._alarm_0_severity = device_data[ATTR_ALARM_0]["severity"]
-                    self._alarm_0_duration = device_data[ATTR_ALARM_0]["duration"]
+#                    else:
+#                        _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
+                if ATTR_ALARM in device_data:
+                    self._alarm_0_type = device_data[ATTR_ALARM]["type"]
+                    self._alarm_0_severity = device_data[ATTR_ALARM]["severity"]
+                    self._alarm_0_duration = device_data[ATTR_ALARM]["duration"]
                 if ATTR_ALARM_1 in device_data:
                     self._alarm_1_type = device_data[ATTR_ALARM_1]["type"]
                     self._alarm_1_severity = device_data[ATTR_ALARM_1]["severity"]
@@ -660,6 +659,7 @@ class NeviwebThermostat(ClimateEntity):
                     'floor_sensor_type': self._sensor_type,
                     'floor_setpoint': self._floor_setpoint,
                     'floor_temperature': self._floor_temperature,
+                    'floor_temp_error': self._floor_temp_error,
                     'floor_air_limit': self._floor_air_limit,
                     'floor_temp_max': self._floor_max,
                     'floor_temp_min': self._floor_min,
@@ -675,6 +675,7 @@ class NeviwebThermostat(ClimateEntity):
                     'floor_sensor_type': self._sensor_type,
                     'floor_setpoint': self._floor_setpoint,
                     'floor_temperature': self._floor_temperature,
+                    'floor_temp_error': self._floor_temp_error,
                     'floor_air_limit': self._floor_air_limit,
                     'floor_temp_max': self._floor_max,
                     'floor_temp_min': self._floor_min,
@@ -687,7 +688,6 @@ class NeviwebThermostat(ClimateEntity):
                     'hour_kwh': self._hour_energy_kwh,
                     'day_kwh': self._today_energy_kwh,
                     'rssi': self._rssi,
-                    'alarm': self._alarm,
                     'keypad': self._keypad,
                     'away_setpoint': self._away_temp,
                     'setpoint_max': self._max_temp,
@@ -907,13 +907,19 @@ class NeviwebThermostat(ClimateEntity):
         self._operation_mode = preset_mode
 
     def turn_aux_heat_on(self):
-        """Turn auxiliary heater on/off."""
-        self._client.set_aux_heat(
-            self._id, "slave")
-        self._aux_heat = "slave"
+        """Turn auxiliary heater on."""
+        if self._floor_temp_error == None:
+            self._client.set_aux_heat(
+                self._id, "slave")
+            self._aux_heat = "slave"
+        else:
+            _LOGGER.warning("No floor sensor detected... cannot set auxiliary heat to on")
 
     def turn_aux_heat_off(self):
-        """Turn auxiliary heater on/off."""
-        self._client.set_aux_heat(
-            self._id, "off")
-        self._aux_heat = "off"
+        """Turn auxiliary heater off."""
+        if self._floor_temp_error == None:
+            self._client.set_aux_heat(
+                self._id, "off")
+            self._aux_heat = "off"
+        else:
+            _LOGGER.warning("No floor sensor detected... cannot set auxiliary heat to off")
