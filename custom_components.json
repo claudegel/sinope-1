@@ -1,6 +1,6 @@
 {
     "neviweb": {
-        "version": "1.9.0",
+        "version": "1.9.1",
         "local_location": "/custom_components/neviweb/__init__.py",
         "remote_location": "https://github.com/claudegel/sinope-1/tree/master/custom_components/neviweb/__init__.py",
         "visit_repo": "https://github.com/claudegel/sinope-1",
