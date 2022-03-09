@@ -39,6 +39,7 @@ from .const import (
     ATTR_SIGNATURE,
     ATTR_FLOOR_MODE,
     ATTR_AUX_CONFIG,
+    ATTR_AUX_CYCLE_LENGTH,
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
@@ -414,9 +415,12 @@ class NeviwebClient(object):
         _LOGGER.debug("setpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_heat(self, device_id, heat):
+    def set_aux_heat(self, device_id, heat, cycle):
         """Set floor and low voltage thermostats auxiliary heating slave/off."""
-        data = {ATTR_AUX_CONFIG: heat}
+        if heat == "slave":
+            data = {ATTR_AUX_CONFIG: heat}
+        else:
+            data = {ATTR_AUX_CONFIG: heat, ATTR_AUX_CYCLE_LENGTH: cycle}
         _LOGGER.debug("aux_heat.data = %s", data)
         self.set_device_attributes(device_id, data)
 
