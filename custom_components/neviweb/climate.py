@@ -909,17 +909,23 @@ class NeviwebThermostat(ClimateEntity):
     def turn_aux_heat_on(self):
         """Turn auxiliary heater on."""
         if self._floor_temp_error == None:
+            if self._is_floor:
+                self._aux_heat = "slave"
+            else:
+                if self._aux_cycle_length == "short":
+                    self._aux_heat = "shortCycle"
+                else:
+                    self._aux_heat = "longCycle"
             self._client.set_aux_heat(
-                self._id, "slave")
-            self._aux_heat = "slave"
+                    self._id, self._aux_heat, self._aux_cycle_length)
         else:
             _LOGGER.warning("No floor sensor detected... cannot set auxiliary heat to on")
 
     def turn_aux_heat_off(self):
         """Turn auxiliary heater off."""
         if self._floor_temp_error == None:
-            self._client.set_aux_heat(
-                self._id, "off")
             self._aux_heat = "off"
+            self._client.set_aux_heat(
+                self._id, "off", 0)
         else:
             _LOGGER.warning("No floor sensor detected... cannot set auxiliary heat to off")
