@@ -938,28 +938,27 @@ class NeviwebThermostat(ClimateEntity):
         """Set auxiliary cycle length for low voltage thermostats"""
         val = value["length"]
         entity = value["id"]
-        match val:
-            case 0:
-                output = "shortCycle"
-                length = "short"
-            case 5:
-                output = "longCycle"
-                length = "long5min"
-            case 10:
-                output = "longCycle"
-                length = "long10min"
-            case 15:
-                output = "longCycle"
-                length = "long15min"
-            case 20:
-                output = "longCycle"
-                length = "long20min"
-            case 25:
-                output = "longCycle"
-                length = "long25min"
-            case 30:
-                output = "longCycle"
-                length = "long30min"
+        if val == 5:
+            output = "longCycle"
+            length = "long5min"
+        elif val == 10:
+            output = "longCycle"
+            length = "long10min"
+        elif val == 15:
+            output = "longCycle"
+            length = "long15min"
+        elif val == 20:
+            output = "longCycle"
+            length = "long20min"
+        elif val == 25:
+            output = "longCycle"
+            length = "long25min"
+        elif val == 30:
+            output = "longCycle"
+            length = "long30min"
+        else:
+            output = "shortCycle"
+            length = "short"
         self._client.set_aux_cycle_length(
             entity, output, length)
         self._aux_cycle_config = output
