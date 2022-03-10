@@ -179,3 +179,13 @@ set_air_floor_mode:
     airFloorMode:
       description: Set to "airByFloor" for ambiant temperature or to "floor" for floor temperature.
       example: "floor"
+
+set_aux_cycle_length:
+  description: Set low voltage thermostats auxilary cycle time in minutes.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat.
+      example: "climate.neviweb_climate_kitchen"
+    value:
+      description: cycle lencht in minutes. Value are 0,5,10,15,20,25 and 30
+      example: 5
