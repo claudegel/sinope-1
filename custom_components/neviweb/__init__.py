@@ -424,6 +424,12 @@ class NeviwebClient(object):
         _LOGGER.debug("aux_heat.data = %s", data)
         self.set_device_attributes(device_id, data)
 
+    def set_aux_cycle_length(self, device_id, output, length):
+        """Set low voltage thermostats auxiliary heating output and cycle."""
+        data = {ATTR_AUX_CONFIG: output, ATTR_AUX_CYCLE_LENGTH: length}
+        _LOGGER.debug("aux_cycle.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
     def set_air_floor_mode(self, device_id, mode):
         """Set ambiant or floor temperature control for floor thermostats."""
         data = {ATTR_FLOOR_MODE: mode}
