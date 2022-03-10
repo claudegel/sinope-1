@@ -112,6 +112,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb.set_setpoint_max, to set maximum setpoint temperature for thermostats.
 - neviweb.set_light_away_mode, to set mode for light when occupency is set to away.
 - neviweb.set_switch_away_mode, to set mode for switch when occupency is set to away.
+- neviweb.set_aux_cycle_length, to set low voltage thermostat auxiliary cycle length and output
 
 ## Catch Éco Sinopé signal for peak period
 
