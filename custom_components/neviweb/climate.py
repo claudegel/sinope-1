@@ -107,6 +107,7 @@ from .const import (
     SERVICE_SET_SETPOINT_MAX,
     SERVICE_SET_SETPOINT_MIN,
     SERVICE_SET_AIR_FLOOR_MODE,
+    SERVICE_SET_AUX_CYCLE_LENGTH,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -219,6 +220,15 @@ SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_MODE): cv.string,
+    }
+)
+
+SET_AUX_CYCLE_LENGTH_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("value"): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=30)
+        ),
     }
 )
 
@@ -346,6 +356,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_aux_cycle_length_service(service):
+        """set aux cycle duration for low voltage thermosstats"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "length": service.data["value"]}
+                thermostat.set_aux_cycle_length(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -407,6 +428,13 @@ async def async_setup_platform(
         SERVICE_SET_AIR_FLOOR_MODE,
         set_air_floor_mode_service,
         schema=SET_AIR_FLOOR_MODE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_AUX_CYCLE_LENGTH,
+        set_aux_cycle_length_service,
+        schema=SET_AUX_CYCLE_LENGTH_SCHEMA,
     )
 
 class NeviwebThermostat(ClimateEntity):
@@ -717,7 +745,7 @@ class NeviwebThermostat(ClimateEntity):
     @property
     def is_aux_heat(self):
         """Return the min temperature."""
-        return self._aux_heat == "slave"
+        return self._aux_heat in ["slave", "shortCycle", "longCycle"]
 
     @property
     def min_temp(self):
@@ -905,6 +933,37 @@ class NeviwebThermostat(ClimateEntity):
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
         self._operation_mode = preset_mode
+
+    def set_aux_cycle_length(self, value):
+        """Set auxiliary cycle length for low voltage thermostats"""
+        val = value["length"]
+        entity = value["id"]
+        match val:
+            case 0:
+                output = "shortCycle"
+                length = "short"
+            case 5:
+                output = "longCycle"
+                length = "long5min"
+            case 10:
+                output = "longCycle"
+                length = "long10min"
+            case 15:
+                output = "longCycle"
+                length = "long15min"
+            case 20:
+                output = "longCycle"
+                length = "long20min"
+            case 25:
+                output = "longCycle"
+                length = "long25min"
+            case 30:
+                output = "longCycle"
+                length = "long30min"
+        self._client.set_aux_cycle_length(
+            entity, output, length)
+        self._aux_cycle_config = output
+        self._aux_cycle_length = length
 
     def turn_aux_heat_on(self):
         """Turn auxiliary heater on."""
