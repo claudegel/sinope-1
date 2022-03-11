@@ -227,7 +227,7 @@ SET_AUX_CYCLE_LENGTH_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("value"): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=30)
+            vol.Coerce(int), vol.Range(min=1, max=30)
         ),
     }
 )
