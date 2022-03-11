@@ -980,4 +980,4 @@ class NeviwebThermostat(ClimateEntity):
         """Turn auxiliary heater off."""
         self._aux_heat = "off"
         self._client.set_aux_heat(
-            self._id, "off", 0)
+            self._id, "off", self._aux_cycle_length)
