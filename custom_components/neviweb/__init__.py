@@ -415,9 +415,9 @@ class NeviwebClient(object):
         _LOGGER.debug("setpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_heat(self, device_id, heat, cycle):
+    def set_aux_heat(self, device_id, heat, cycle, floor):
         """Set floor and low voltage thermostats auxiliary heating slave/off."""
-        if heat == "slave":
+        if floor:
             data = {ATTR_AUX_CONFIG: heat}
         else:
             data = {ATTR_AUX_CONFIG: heat, ATTR_AUX_CYCLE_LENGTH: cycle}
