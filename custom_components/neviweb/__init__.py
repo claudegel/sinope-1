@@ -19,27 +19,27 @@ from .const import (
     DOMAIN,
     CONF_NETWORK,
     CONF_NETWORK2,
-    ATTR_INTENSITY,
-    ATTR_POWER_MODE,
-    ATTR_SETPOINT_MODE,
-    ATTR_ROOM_SETPOINT,
-    ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX,
-    ATTR_KEYPAD,
-    ATTR_LED_ON,
-    ATTR_LED_OFF,
-    ATTR_TIMER,
-    ATTR_TIME,
-    ATTR_TEMP,
-    ATTR_EARLY_START,
-    ATTR_DISPLAY_2,
-    ATTR_WATTAGE_OVERRIDE,
-    ATTR_BACKLIGHT,
-    ATTR_AWAY_MODE,
-    ATTR_SIGNATURE,
-    ATTR_FLOOR_MODE,
     ATTR_AUX_CONFIG,
     ATTR_AUX_CYCLE_LENGTH,
+    ATTR_AWAY_MODE,
+    ATTR_BACKLIGHT,
+    ATTR_DISPLAY_2,
+    ATTR_EARLY_START,
+    ATTR_FLOOR_MODE,
+    ATTR_INTENSITY,
+    ATTR_KEYPAD,
+    ATTR_LED_OFF,
+    ATTR_LED_ON,
+    ATTR_POWER_MODE,
+    ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_SETPOINT_MODE,
+    ATTR_SIGNATURE,
+    ATTR_TIME,
+    ATTR_TIMER,
+    ATTR_TEMP,
+    ATTR_WATTAGE_OVERRIDE,
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
@@ -278,7 +278,6 @@ class NeviwebClient(object):
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
-#                raise PyNeviwebError("Session expired")
         return data
 
     def get_device_daily_stats(self, device_id):
@@ -296,7 +295,6 @@ class NeviwebClient(object):
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
-#        _LOGGER.debug("daily stat = %s", data)
         if "values" in data:
             return data["values"]
         return None
@@ -449,8 +447,8 @@ class NeviwebClient(object):
                 _LOGGER.debug("Data = %s", data)
                 _LOGGER.debug("Request response = %s", resp.status_code)
                 _LOGGER.debug("Json Data received = %s", resp.json())
-                _LOGGER.debug("Content = %s", resp.content)
-                _LOGGER.debug("Text = %s", resp.text)
+#                _LOGGER.debug("Content = %s", resp.content)
+#                _LOGGER.debug("Text = %s", resp.text)
             except OSError:
                 raise PyNeviwebError("Cannot set device %s attributes: %s", 
                     device_id, data)
