@@ -112,7 +112,9 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb.set_setpoint_max, to set maximum setpoint temperature for thermostats.
 - neviweb.set_light_away_mode, to set mode for light when occupency is set to away.
 - neviweb.set_switch_away_mode, to set mode for switch when occupency is set to away.
-
+- neviweb.set_aux_cycle_length, to set low voltage thermostat auxiliary cycle length and output. For 15 seconds short cycle
+ select value = 1. To trun on/off auxiliary heating just use the button at the bottom of the thermostat card.
+ 
 ## Catch Éco Sinopé signal for peak period
 
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler.

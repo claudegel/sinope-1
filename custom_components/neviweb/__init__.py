@@ -19,30 +19,31 @@ from .const import (
     DOMAIN,
     CONF_NETWORK,
     CONF_NETWORK2,
-    ATTR_INTENSITY,
-    ATTR_POWER_MODE,
-    ATTR_SETPOINT_MODE,
-    ATTR_ROOM_SETPOINT,
-    ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX,
-    ATTR_KEYPAD,
-    ATTR_LED_ON,
-    ATTR_LED_OFF,
-    ATTR_TIMER,
-    ATTR_TIME,
-    ATTR_TEMP,
-    ATTR_EARLY_START,
-    ATTR_DISPLAY_2,
-    ATTR_WATTAGE_OVERRIDE,
-    ATTR_BACKLIGHT,
-    ATTR_AWAY_MODE,
-    ATTR_SIGNATURE,
-    ATTR_FLOOR_MODE,
     ATTR_AUX_CONFIG,
+    ATTR_AUX_CYCLE_LENGTH,
+    ATTR_AWAY_MODE,
+    ATTR_BACKLIGHT,
+    ATTR_DISPLAY_2,
+    ATTR_EARLY_START,
+    ATTR_FLOOR_MODE,
+    ATTR_INTENSITY,
+    ATTR_KEYPAD,
+    ATTR_LED_OFF,
+    ATTR_LED_ON,
+    ATTR_POWER_MODE,
+    ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_SETPOINT_MODE,
+    ATTR_SIGNATURE,
+    ATTR_TIME,
+    ATTR_TIMER,
+    ATTR_TEMP,
+    ATTR_WATTAGE_OVERRIDE,
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.9.0'
+VERSION = '1.9.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -277,7 +278,6 @@ class NeviwebClient(object):
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
-#                raise PyNeviwebError("Session expired")
         return data
 
     def get_device_daily_stats(self, device_id):
@@ -295,7 +295,6 @@ class NeviwebClient(object):
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
-#        _LOGGER.debug("daily stat = %s", data)
         if "values" in data:
             return data["values"]
         return None
@@ -414,10 +413,22 @@ class NeviwebClient(object):
         _LOGGER.debug("setpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_heat(self, device_id, heat):
+    def set_aux_heat(self, device_id, heat, cycle, floor):
         """Set floor and low voltage thermostats auxiliary heating slave/off."""
-        data = {ATTR_AUX_CONFIG: heat}
+        if floor:
+            data = {ATTR_AUX_CONFIG: heat}
+        else:
+            if heat == "off":
+                data = {ATTR_AUX_CONFIG: heat}
+            else:
+                data = {ATTR_AUX_CONFIG: heat, ATTR_AUX_CYCLE_LENGTH: cycle}
         _LOGGER.debug("aux_heat.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_cycle_length(self, device_id, output, length):
+        """Set low voltage thermostats auxiliary heating output and cycle."""
+        data = {ATTR_AUX_CONFIG: output, ATTR_AUX_CYCLE_LENGTH: length}
+        _LOGGER.debug("aux_cycle.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_air_floor_mode(self, device_id, mode):
@@ -436,8 +447,8 @@ class NeviwebClient(object):
                 _LOGGER.debug("Data = %s", data)
                 _LOGGER.debug("Request response = %s", resp.status_code)
                 _LOGGER.debug("Json Data received = %s", resp.json())
-                _LOGGER.debug("Content = %s", resp.content)
-                _LOGGER.debug("Text = %s", resp.text)
+#                _LOGGER.debug("Content = %s", resp.content)
+#                _LOGGER.debug("Text = %s", resp.text)
             except OSError:
                 raise PyNeviwebError("Cannot set device %s attributes: %s", 
                     device_id, data)
