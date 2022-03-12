@@ -25,12 +25,12 @@ from homeassistant.const import (
 
 from homeassistant.helpers import (
     config_validation as cv,
-    discovery,
-    service,
-    entity_platform,
-    entity_component,
-    entity_registry,
     device_registry,
+    discovery,
+    entity_component,
+    entity_platform,
+    entity_registry,
+    service,
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
@@ -39,27 +39,27 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
-    ATTR_POWER_MODE,
-    ATTR_INTENSITY,
-    ATTR_RSSI,
-    ATTR_WATTAGE_OVERRIDE,
-    ATTR_OCCUPANCY,
     ATTR_AWAY_MODE,
-    ATTR_KEYPAD,
-    ATTR_TIMER,
-    ATTR_LED_ON,
-    ATTR_LED_OFF,
-    ATTR_STATE,
-    ATTR_RED,
-    ATTR_GREEN,
     ATTR_BLUE,
+    ATTR_GREEN,
+    ATTR_INTENSITY,
+    ATTR_KEYPAD,
+    ATTR_LED_OFF,
+    ATTR_LED_ON,
+    ATTR_OCCUPANCY,
+    ATTR_POWER_MODE,
+    ATTR_RED,
+    ATTR_RSSI,
+    ATTR_STATE,
+    ATTR_TIMER,
+    ATTR_WATTAGE_OVERRIDE,
     MODE_AUTO,
     MODE_MANUAL,
     SERVICE_SET_LED_INDICATOR,
+    SERVICE_SET_LIGHT_AWAY_MODE,
     SERVICE_SET_LIGHT_KEYPAD_LOCK,
     SERVICE_SET_LIGHT_TIMER,
     SERVICE_SET_WATTAGE,
-    SERVICE_SET_LIGHT_AWAY_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
