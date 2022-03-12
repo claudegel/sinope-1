@@ -420,7 +420,10 @@ class NeviwebClient(object):
         if floor:
             data = {ATTR_AUX_CONFIG: heat}
         else:
-            data = {ATTR_AUX_CONFIG: heat, ATTR_AUX_CYCLE_LENGTH: cycle}
+            if heat == "off":
+                data = {ATTR_AUX_CONFIG: heat}
+            else:
+                data = {ATTR_AUX_CONFIG: heat, ATTR_AUX_CYCLE_LENGTH: cycle}
         _LOGGER.debug("aux_heat.data = %s", data)
         self.set_device_attributes(device_id, data)
 
