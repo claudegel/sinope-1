@@ -145,20 +145,9 @@ template:
     - name: Kitchen energy usage
       unit_of_measurement: kWh
       device_class: energy
-      state_class: total_increasing
-      state: >
-        {{ state_attr("climate.neviweb_climate_kitchen","hourly_kwh_count") }}
-```
-or:
-```yaml
-template:
-  - sensor:
-    - name: Kitchen energy usage
-      unit_of_measurement: kWh
-      device_class: energy
       state_class: total
       state: >
-        {{ state_attr("climate.neviweb_climate_kitchen","hourly_kwh") }}
+        {{ state_attr("climate.neviweb_climate_kitchen","hour_kwh") }}
 ```
 
 ## Troubleshooting
