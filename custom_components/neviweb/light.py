@@ -383,8 +383,8 @@ class NeviwebLight(LightEntity):
                      'occupancy': self._occupancy,
                      'away_mode': self._away_mode,
                      'wattage_override': self._wattage_override,
-                     'hour_kwh': self._hour_energy_kwh,
-                     'day_kwh': self._today_energy_kwh,
+                     'hourly_kwh': self._hour_energy_kwh,
+                     'daily_kwh': self._today_energy_kwh,
                      'led_on': self._led_on,
                      'led_off': self._led_off,
                      'id': self._id})
