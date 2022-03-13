@@ -301,8 +301,8 @@ class NeviwebSwitch(SwitchEntity):
                 'away_mode': self._away_mode,
                 'keypad': self._keypad,
                 'wattage': self._wattage,
-                'hour_kwh': self._hour_energy_kwh,
-                'day_kwh': self._today_energy_kwh,
+                'hourly_kwh': self._hour_energy_kwh,
+                'daily_kwh': self._today_energy_kwh,
                 'id': self._id}
 
     @property
