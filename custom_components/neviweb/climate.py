@@ -713,8 +713,8 @@ class NeviwebThermostat(ClimateEntity):
                     'pump_protection_duration': self._pump_protec_duration})
         data.update ({'heat_level': self._heat_level,
                     'wattage': self._wattage,
-                    'hour_kwh': self._hour_energy_kwh,
-                    'day_kwh': self._today_energy_kwh,
+                    'hourly_kwh': self._hour_energy_kwh,
+                    'daily_kwh': self._today_energy_kwh,
                     'rssi': self._rssi,
                     'keypad': self._keypad,
                     'away_setpoint': self._away_temp,
