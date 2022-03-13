@@ -131,8 +131,8 @@ It is then possible to make an automation to set all devices ready for peak peri
 ## Statistic for energy
 
 two attributes are added to track energy usage for devices:
-- hour_kwh: kwh used for last hour
-- day_kwh: kwh used for last day
+- hourly_kwh: kwh used for last hour
+- daily_kwh: kwh used for last day
 
 They are polled from Neviweb every 30 minutes.
 
@@ -147,7 +147,7 @@ template:
       device_class: energy
       state_class: total
       state: >
-        {{ state_attr("climate.neviweb_climate_kitchen","hour_kwh") }}
+        {{ state_attr("climate.neviweb_climate_kitchen","hourly_kwh") }}
 ```
 
 ## Troubleshooting
