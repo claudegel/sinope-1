@@ -117,6 +117,18 @@ SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_A
 
 DEFAULT_NAME = "neviweb climate"
 
+PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
+
+HA_TO_NEVIWEB_PERIOD = {
+    "15 sec": 15,
+    "5 min": 300,
+    "10 min": 600,
+    "15 min": 900,
+    "20 min": 1200,
+    "25 min": 1500,
+    "30 min": 1800
+}
+
 UPDATE_ATTRIBUTES = [
     ATTR_SETPOINT_MODE,
     ATTR_RSSI,
@@ -155,7 +167,7 @@ IMPLEMENTED_DEVICE_TYPES = IMPLEMENTED_THERMOSTAT + IMPLEMENTED_LOW_VOLTAGE + IM
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_DISPLAY_2): cv.string,
+        vol.Required(ATTR_DISPLAY_2): vol.In(["outsideTemperature", "default"]),
     }
 )
 
@@ -171,7 +183,7 @@ SET_BACKLIGHT_SCHEMA = vol.Schema(
 SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): cv.string,
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
     }
 )
 
@@ -187,14 +199,14 @@ SET_TIME_FORMAT_SCHEMA = vol.Schema(
 SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TEMP): cv.string,
+        vol.Required(ATTR_TEMP): vol.In(["celsius", "fahrenheit"]),
     }
 )
 
 SET_EARLY_START_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_EARLY_START): cv.string,
+        vol.Required(ATTR_EARLY_START): vol.In(["on", "off"]),
     }
 )
 
@@ -219,7 +231,7 @@ SET_SETPOINT_MIN_SCHEMA = vol.Schema(
 SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_MODE): cv.string,
+        vol.Required(ATTR_FLOOR_MODE): vol.In(["airByFloor", "floor"]),
     }
 )
 
@@ -227,7 +239,7 @@ SET_AUX_CYCLE_LENGTH_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("value"): vol.All(
-            vol.Coerce(int), vol.Range(min=1, max=30)
+            cv.ensure_list, [vol.In(PERIOD_VALUE)]
         ),
     }
 )
@@ -682,8 +694,8 @@ class NeviwebThermostat(ClimateEntity):
                     'eco_optout': self._shed_stat_optout})
         if self._is_floor:
             data.update({'sensor_mode': self._floor_mode,
-                    'slave_status': self._aux_heat,
-                    'slave_load': self._aux_wattage,
+                    'auxiliary_status': self._aux_heat,
+                    'auxiliary_load': self._aux_wattage,
                     'floor_sensor_type': self._sensor_type,
                     'floor_setpoint': self._floor_setpoint,
                     'floor_temperature': self._floor_temperature,
@@ -695,10 +707,10 @@ class NeviwebThermostat(ClimateEntity):
                     'floor_setpoint_min': self._floor_setpoint_min})
         if self._is_low_voltage:
             data.update({'sensor_mode': self._floor_mode,
-                    'slave_status': self._aux_heat,
-                    'slave_load': self._aux_wattage,
-                    'slave_output_conf': self._aux_cycle_config,
-                    'slave_output_cycle': self._aux_cycle_length,
+                    'auxiliary_status': self._aux_heat,
+                    'auxiliary_load': self._aux_wattage,
+                    'auxiliary_output_conf': self._aux_cycle_config,
+                    'auxiliary_output_cycle': neviweb_to_ha(self._aux_cycle_length),
                     'cycle_length': self._cycle_length,
                     'floor_sensor_type': self._sensor_type,
                     'floor_setpoint': self._floor_setpoint,
@@ -938,27 +950,12 @@ class NeviwebThermostat(ClimateEntity):
         """Set auxiliary cycle length for low voltage thermostats"""
         val = value["length"]
         entity = value["id"]
-        if val == 5:
-            output = "longCycle"
-            length = "long5min"
-        elif val == 10:
-            output = "longCycle"
-            length = "long10min"
-        elif val == 15:
-            output = "longCycle"
-            length = "long15min"
-        elif val == 20:
-            output = "longCycle"
-            length = "long20min"
-        elif val == 25:
-            output = "longCycle"
-            length = "long25min"
-        elif val == 30:
-            output = "longCycle"
-            length = "long30min"
-        else:
+        if val in HA_TO_NEVIWEB_PERIOD:
+            length = HA_TO_NEVIWEB_PERIOD[val]
+        if length == "short":
             output = "shortCycle"
-            length = "short"
+        else:
+            output = "longCycle"
         self._client.set_aux_cycle_length(
             entity, output, length)
         self._aux_cycle_config = output
@@ -981,3 +978,9 @@ class NeviwebThermostat(ClimateEntity):
         self._aux_heat = "off"
         self._client.set_aux_heat(
             self._id, "off", self._aux_cycle_length, self._is_floor)
+
+    def neviweb_to_ha(self, value):
+        keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
+        if keys:
+            return keys[0]
+        return None

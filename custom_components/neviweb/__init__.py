@@ -43,7 +43,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.9.2'
+VERSION = '1.9.3'
 
 _LOGGER = logging.getLogger(__name__)
 
