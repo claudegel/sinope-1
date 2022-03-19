@@ -78,7 +78,7 @@ IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): cv.string,
+         vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
     }
 )
 
@@ -94,7 +94,7 @@ SET_SWITCH_TIMER_SCHEMA = vol.Schema(
 SET_SWITCH_AWAY_MODE_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_AWAY_MODE): cv.string,
+         vol.Required(ATTR_AWAY_MODE): vol.In(["auto", "manualOn", "manualOff"]),
     }
 )
 
