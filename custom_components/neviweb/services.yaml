@@ -187,5 +187,5 @@ set_aux_cycle_length:
       description: Name(s) of neviweb thermostat.
       example: "climate.neviweb_climate_kitchen"
     value:
-      description: cycle lencht in minutes. Value are 1,5,10,15,20,25 and 30. 1 is for the 15 sec cycle length.
-      example: 5
+      description: cycle lencht in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
+      example: "10 min"
