@@ -86,7 +86,7 @@ IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): cv.string,
+         vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
     }
 )
 
@@ -132,7 +132,7 @@ SET_LED_INDICATOR_SCHEMA = vol.Schema(
 SET_LIGHT_AWAY_MODE_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_AWAY_MODE): cv.string,
+         vol.Required(ATTR_AWAY_MODE): vol.In(["auto", "manualOn", "manualOff"]),
     }
 )
 
