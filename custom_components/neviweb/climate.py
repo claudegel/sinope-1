@@ -449,7 +449,7 @@ async def async_setup_platform(
         schema=SET_AUX_CYCLE_LENGTH_SCHEMA,
     )
 
-def neviweb_to_ha(self, value):
+def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
     if keys:
         return keys[0]
