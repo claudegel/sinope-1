@@ -120,13 +120,13 @@ DEFAULT_NAME = "neviweb climate"
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 
 HA_TO_NEVIWEB_PERIOD = {
-    "15 sec": 15,
-    "5 min": 300,
-    "10 min": 600,
-    "15 min": 900,
-    "20 min": 1200,
-    "25 min": 1500,
-    "30 min": 1800
+    '15 sec': 'short',
+    '5 min': 'long5min',
+    '10 min': 'long10min',
+    '15 min': 'long15min',
+    '20 min': 'long20min',
+    '25 min': 'long25min',
+    '30 min': 'long30min'
 }
 
 UPDATE_ATTRIBUTES = [
@@ -956,8 +956,7 @@ class NeviwebThermostat(ClimateEntity):
         """Set auxiliary cycle length for low voltage thermostats"""
         val = value["length"]
         entity = value["id"]
-        if val in HA_TO_NEVIWEB_PERIOD:
-            length = HA_TO_NEVIWEB_PERIOD[val]
+        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val]
         if length == "short":
             output = "shortCycle"
         else:
