@@ -449,6 +449,12 @@ async def async_setup_platform(
         schema=SET_AUX_CYCLE_LENGTH_SCHEMA,
     )
 
+def neviweb_to_ha(self, value):
+    keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
+    if keys:
+        return keys[0]
+    return None
+
 class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
@@ -978,9 +984,3 @@ class NeviwebThermostat(ClimateEntity):
         self._aux_heat = "off"
         self._client.set_aux_heat(
             self._id, "off", self._aux_cycle_length, self._is_floor)
-
-    def neviweb_to_ha(self, value):
-        keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
-        if keys:
-            return keys[0]
-        return None
