@@ -23,6 +23,7 @@ from .const import (
     ATTR_AUX_CYCLE_LENGTH,
     ATTR_AWAY_MODE,
     ATTR_BACKLIGHT,
+    ATTR_CYCLE_LENGTH,
     ATTR_DISPLAY_2,
     ATTR_EARLY_START,
     ATTR_FLOOR_MODE,
@@ -43,7 +44,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.9.5'
+VERSION = '1.9.6'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -423,6 +424,12 @@ class NeviwebClient(object):
             else:
                 data = {ATTR_AUX_CONFIG: heat, ATTR_AUX_CYCLE_LENGTH: cycle}
         _LOGGER.debug("aux_heat.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cycle_length(self, device_id, length):
+        """Set low voltage thermostats main heating cycle."""
+        data = {ATTR_CYCLE_LENGTH: length}
+        _LOGGER.debug("cycle.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_aux_cycle_length(self, device_id, output, length):
