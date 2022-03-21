@@ -984,6 +984,7 @@ class NeviwebThermostat(ClimateEntity):
         """Set main cycle length for low voltage thermostats"""
         val = value["length"]
         entity = value["id"]
+        _LOGGER.warning("Val= %s", val)
         length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
         self._client.set_cycle_length(
             entity, length)
@@ -993,6 +994,7 @@ class NeviwebThermostat(ClimateEntity):
         """Set auxiliary cycle length for low voltage thermostats"""
         val = value["length"]
         entity = value["id"]
+        _LOGGER.warning("Val= %s", val)
         length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
         if length == "short":
             output = "shortCycle"
