@@ -384,7 +384,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "length": service.data["value"]}
+                value = {"id": thermostat.unique_id, "length": service.data["value"][0]}
                 thermostat.set_cycle_length(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -395,7 +395,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "length": service.data["value"]}
+                value = {"id": thermostat.unique_id, "length": service.data["value"][0]}
                 thermostat.set_aux_cycle_length(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -984,7 +984,6 @@ class NeviwebThermostat(ClimateEntity):
         """Set main cycle length for low voltage thermostats"""
         val = value["length"]
         entity = value["id"]
-        _LOGGER.warning("Val= %s", val)
         length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
         self._client.set_cycle_length(
             entity, length)
@@ -994,7 +993,6 @@ class NeviwebThermostat(ClimateEntity):
         """Set auxiliary cycle length for low voltage thermostats"""
         val = value["length"]
         entity = value["id"]
-        _LOGGER.warning("Val= %s", val)
         length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
         if length == "short":
             output = "shortCycle"
