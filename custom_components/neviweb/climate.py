@@ -89,6 +89,7 @@ from .const import (
     ATTR_RSSI,
     ATTR_SETPOINT_MODE,
     ATTR_SHED_STATUS,
+    ATTR_STATUS,
     ATTR_TEMP,
     ATTR_TIME,
     ATTR_WATTAGE,
@@ -109,6 +110,7 @@ from .const import (
     SERVICE_SET_SETPOINT_MIN,
     SERVICE_SET_TEMPERATURE_FORMAT,
     SERVICE_SET_TIME_FORMAT,
+    SERVICE_SET_ECO_STATUS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -250,6 +252,15 @@ SET_AUX_CYCLE_LENGTH_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("value"): vol.All(
             cv.ensure_list, [vol.In(PERIOD_VALUE)]
+        ),
+    }
+)
+
+SET_ECO_STATUS_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_STATUS): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
         ),
     }
 )
@@ -400,6 +411,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_eco_status_service(service):
+        """Set eco status on/off"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS]}
+                thermostat.set_eco_status(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -475,6 +497,13 @@ async def async_setup_platform(
         SERVICE_SET_AUX_CYCLE_LENGTH,
         set_aux_cycle_length_service,
         schema=SET_AUX_CYCLE_LENGTH_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_ECO_STATUS,
+        set_eco_status_service,
+        schema=SET_ECO_STATUS_SCHEMA,
     )
 
 def neviweb_to_ha(value):
@@ -951,6 +980,14 @@ class NeviwebThermostat(ClimateEntity):
         self._client.set_air_floor_mode(
             entity, mode)
         self._floor_mode = mode
+
+    def set_eco_status(self, value):
+        """ set eco status on/off"""
+        status = value ["status"]
+        entity = value["id"]
+        self._client.set_eco_status(
+            entity, status)
+        self._shed_stat_temp = status
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
