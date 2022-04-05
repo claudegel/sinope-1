@@ -49,11 +49,13 @@ from .const import (
     ATTR_OCCUPANCY,
     ATTR_AWAY_MODE,
     ATTR_SHED_PLANNING,
+    ATTR_STATUS,
     MODE_AUTO,
     MODE_MANUAL,
     SERVICE_SET_SWITCH_KEYPAD_LOCK,
     SERVICE_SET_SWITCH_TIMER,
     SERVICE_SET_SWITCH_AWAY_MODE,
+    SERVICE_SET_SWITCH_ECO_STATUS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -95,6 +97,13 @@ SET_SWITCH_AWAY_MODE_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_AWAY_MODE): vol.In(["auto", "manualOn", "manualOff"]),
+    }
+)
+
+SET_SWITCH_ECO_STATUS_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_STATUS): vol.In(["none", "planned"]),
     }
 )
 
@@ -156,6 +165,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_switch_eco_status_service(service):
+        """ set switch eco status """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "status": service.data[ATTR_STATUS]}
+                switch.set_switch_eco_status(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -175,6 +195,13 @@ async def async_setup_platform(
         SERVICE_SET_SWITCH_AWAY_MODE,
         set_switch_away_mode_service,
         schema=SET_SWITCH_AWAY_MODE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SWITCH_ECO_STATUS,
+        set_switch_eco_status_service,
+        schema=SET_SWITCH_ECO_STATUS_SCHEMA,
     )
 
 class NeviwebSwitch(SwitchEntity):
@@ -347,3 +374,11 @@ class NeviwebSwitch(SwitchEntity):
         self._client.set_mode_away(
             entity, away)
         self._away_mode = away
+
+    def set_switch_eco_status(self, value):
+        """ Set switch eco status on/off """
+        status = value["status"]
+        entity = value["id"]
+        self._client.set_switch_eco_status(
+            entity, status)
+        self._shed_planning_status = status
