@@ -975,7 +975,7 @@ class NeviwebThermostat(ClimateEntity):
 
     def set_air_floor_mode(self, value):
         """ set ambiant or floor temperature control"""
-        mode = value ["mode"]
+        mode = value["mode"]
         entity = value["id"]
         self._client.set_air_floor_mode(
             entity, mode)
@@ -983,7 +983,7 @@ class NeviwebThermostat(ClimateEntity):
 
     def set_eco_status(self, value):
         """ set eco status on/off"""
-        status = value ["status"]
+        status = value["status"]
         entity = value["id"]
         self._client.set_eco_status(
             entity, status)
