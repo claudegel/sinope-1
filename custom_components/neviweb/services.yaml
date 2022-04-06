@@ -206,7 +206,7 @@ set_eco_status:
     entity_id:
       description: Name(s) of neviweb thermostat.
       example: "climate.neviweb_climate_kitchen"
-    value:
+    status:
       description: Set to «0» to turn off Eco-Sinope, to «1» to turn on Eco-Sinope.
       example: 1
 
@@ -216,6 +216,6 @@ set_switch_eco_status:
     entity_id:
       description: Name(s) of neviweb switch.
       example: "switch.neviweb_switch_garage"
-    value:
+    status:
       description: Set to «none» to turn off Eco-Sinope, to «planned» to turn on Eco-Sinope.
       example: "planned"
