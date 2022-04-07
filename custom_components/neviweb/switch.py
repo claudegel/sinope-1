@@ -308,16 +308,6 @@ class NeviwebSwitch(SwitchEntity):
         return self._operation_mode
 
     @property
-    def current_power_w(self):
-        """Return the current power usage in W."""
-        return self._current_power_w
-
-    @property
-    def today_energy_kwh(self):
-        """Return the today total energy usage in kWh."""
-        return self._today_energy_kwh
-
-    @property
     def is_standby(self):
         """Return true if device is in standby."""
         return self._current_power_w == 0
