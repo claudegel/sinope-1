@@ -44,7 +44,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.9.7'
+VERSION = '1.9.8'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ SCAN_INTERVAL = timedelta(seconds=540)
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
 LOGIN_URL = "{}/api/login".format(HOST)
-LOCATIONS_URL = "{}/api/locations".format(HOST)
+LOCATIONS_URL = "{}/api/locations?account$id=".format(HOST)
 GATEWAY_DEVICE_URL = "{}/api/devices?location$id=".format(HOST)
 DEVICE_DATA_URL = "{}/api/device/".format(HOST)
 
@@ -118,6 +118,7 @@ class NeviwebClient(object):
         self._network_name2 = network2
         self._gateway_id = None
         self._gateway_id2 = None
+        self._account = None
         self.gateway_data = {}
         self.gateway_data2 = {}
         self._headers = None
@@ -163,17 +164,19 @@ class NeviwebClient(object):
         else:
             self.user = data["user"]
             self._headers = {"Session-Id": data["session"]}
-            _LOGGER.debug("Successfully logged in")
+            self._account = str(data["account"]["id"])
+            _LOGGER.debug("Successfully logged in to: %s", self._account)
             return True
 
     def __get_network(self):
         """Get gateway id associated to the desired network."""
         # Http request
         try:
-            raw_res = requests.get(LOCATIONS_URL, headers=self._headers, 
+            raw_res = requests.get(LOCATIONS_URL + self._account, headers=self._headers, 
                 cookies=self._cookies, timeout=self._timeout)
             networks = raw_res.json()
             _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
+            _LOGGER.debug("networks: %s", networks)
             if self._network_name == None and self._network_name2 == None: # Use 1st network found and second if found
                 self._gateway_id = networks[0]["id"]
                 self._network_name = networks[0]["name"]
