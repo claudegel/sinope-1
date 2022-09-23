@@ -44,7 +44,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '1.9.8'
+VERSION = '2.0.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,6 +82,7 @@ def setup(hass, hass_config):
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'switch', DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, 'sensor', DOMAIN, {}, hass_config)
 
     return True
 
@@ -282,6 +283,31 @@ class NeviwebClient(object):
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
+        return data
+
+    def get_device_status(self, device_id):
+        """Get device status for the GT125."""
+        # Prepare return
+        data = {}
+        # Http request
+        try:
+            raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
+                "/status", headers=self._headers, cookies=self._cookies,
+                timeout=self._timeout)
+            _LOGGER.debug("Received GT125 status: %s", raw_res.json())
+        except requests.exceptions.ReadTimeout:
+            return {"errorCode": "ReadTimeout"}
+        except Exception as e:
+            raise PyNeviweb130Error("Cannot get GT125 status", e)
+        # Update cookies
+        #self._cookies.update(raw_res.cookies)
+        # Prepare data
+        data = raw_res.json()
+        if "error" in data:
+            if data["error"]["code"] == "USRSESSEXP":
+                _LOGGER.error("Session expired. Set a scan_interval less" +
+                "than 10 minutes, otherwise the session will end.")
+                #raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
 
     def get_device_daily_stats(self, device_id):
