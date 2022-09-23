@@ -31,6 +31,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
 - Specialized Control
   - Sinopé RM3200RF Load controller 40A
   - Sinopé RM3250RF Load controller 50A
+- Gateway
+  - GT125
 
 *Not tested, but should be working well. Your feedback is appreciated if a device doesn't work.
 
