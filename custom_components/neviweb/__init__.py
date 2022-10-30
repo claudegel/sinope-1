@@ -44,7 +44,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '2.0.0'
+VERSION = '2.0.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -320,14 +320,17 @@ class NeviwebClient(object):
                     "/statistics/30days", headers=self._headers,
                     cookies=self._cookies, timeout=self._timeout)
         except OSError:
-            raise PyNeviwebError("Cannot get device daily stats")
+            raise PyNeviwebError("Cannot get device daily stats...")
+            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         if "values" in data:
             return data["values"]
-        return None
+        else:
+            _LOGGER.debug("Daily stat error: %s", data)
+            return None
 
     def get_device_hourly_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 24 hours."""
@@ -339,14 +342,17 @@ class NeviwebClient(object):
                 "/statistics/24hours", headers=self._headers,
                 cookies=self._cookies, timeout=self._timeout)
         except OSError:
-            raise PyNeviwebError("Cannot get device hourly stats")
+            raise PyNeviwebError("Cannot get device hourly stats...")
+            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         if "values" in data:
             return data["values"]
-        return None
+        else:
+            _LOGGER.debug("Hourly stat error: %s", data)
+            return None
 
     def set_brightness(self, device_id, brightness):
         """Set device brightness."""
