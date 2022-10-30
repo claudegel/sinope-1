@@ -144,12 +144,18 @@ When energy attributes are available, it is possible to track energy consumption
 ```yaml
 template:
   - sensor:
-    - name: Kitchen energy usage
-      unit_of_measurement: kWh
-      device_class: energy
-      state_class: total
-      state: >
-        {{ state_attr("climate.neviweb_climate_kitchen","hourly_kwh") }}
+      - name: Kitchen energy usage
+        unit_of_measurement: kWh
+        device_class: energy
+        state_class: total
+        state: >-
+          {{ state_attr("climate.neviweb_climate_kitchen","hourly_kwh") }}
+      - name: Kitchen energy daily
+        unit_of_measurement: kWh
+        device_class: energy
+        state_class: total
+        state: >-
+          {{ state_attr("climate.neviweb_climate_kitchen","daily_kwh") }}
 ```
 
 ## Troubleshooting
