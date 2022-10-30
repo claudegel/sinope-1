@@ -186,9 +186,9 @@ class NeviwebSwitch(SwitchEntity):
         self._wattage = 0
         self._brightness = 0
         self._operation_mode = 1
-        self._current_power_w = None
-        self._today_energy_kwh = None
-        self._hour_energy_kwh = None
+        self._current_power_w = 0
+        self._today_energy_kwh = 0
+        self._hour_energy_kwh = 0
         self._rssi = None
         self._timer = 0
         self._occupancy = None
