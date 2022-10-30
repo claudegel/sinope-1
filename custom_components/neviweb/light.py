@@ -272,8 +272,8 @@ class NeviwebLight(LightEntity):
         self._client = data.neviweb_client
         self._id = device_info["id"]
         self._wattage_override = 0
-        self._today_energy_kwh = None
-        self._hour_energy_kwh = None
+        self._today_energy_kwh = 0
+        self._hour_energy_kwh = 0
         self._brightness_pct = 0
         self._operation_mode = 1
         self._rssi = None
