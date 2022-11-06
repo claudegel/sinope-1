@@ -283,7 +283,7 @@ class NeviwebLight(LightEntity):
         self._timer = 0
         self._led_on = "0,0,0,0"
         self._led_off = "0,0,0,0"
-        self._energy_stat_time = 0
+        self._energy_stat_time = time.time() - 1500
         self._is_dimmable = device_info["signature"]["type"] in \
             DEVICE_TYPE_DIMMER
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
