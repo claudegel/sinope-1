@@ -195,7 +195,7 @@ class NeviwebSwitch(SwitchEntity):
         self._away_mode = None
         self._keypad = "unlocked"
         self._shed_planning_status = None
-        self._energy_stat_time = 0
+        self._energy_stat_time = time.time() - 1500
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
