@@ -1,6 +1,7 @@
 """
 Support for Neviweb switch.
 type 120 = load controller device, RM3250RF and RM3200RF model 2505
+
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -306,16 +307,6 @@ class NeviwebSwitch(SwitchEntity):
     @property
     def operation_mode(self):
         return self._operation_mode
-
-    @property
-    def current_power_w(self):
-        """Return the current power usage in W."""
-        return self._current_power_w
-
-    @property
-    def today_energy_kwh(self):
-        """Return the today total energy usage in kWh."""
-        return self._today_energy_kwh
 
     @property
     def is_standby(self):
