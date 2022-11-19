@@ -280,13 +280,15 @@ async def async_setup_platform(
             "type" in device_info["signature"] and \
             device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            entities.append(NeviwebThermostat(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(NeviwebThermostat(data, device_info, device_name, device_sku))
     for device_info in data.neviweb_client.gateway_data2:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
             device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            entities.append(NeviwebThermostat(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(NeviwebThermostat(data, device_info, device_name, device_sku))
             
     async_add_entities(entities, True)
 
@@ -515,9 +517,10 @@ def neviweb_to_ha(value):
 class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
-    def __init__(self, data, device_info, name):
+    def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb_client
         self._id = device_info["id"]
         self._model = device_info["signature"]["model"]
@@ -806,6 +809,7 @@ class NeviwebThermostat(ClimateEntity):
                     'alarm1_type': self._alarm_1_type,
                     'alarm1_severity': self._alarm_1_severity,
                     'alarm1_duration': self._alarm_1_duration,
+                    'sku': self._sku,
                     'id': self._id})
         return data
 
