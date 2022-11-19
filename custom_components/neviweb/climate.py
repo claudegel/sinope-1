@@ -565,8 +565,8 @@ class NeviwebThermostat(ClimateEntity):
         self._shed_stat_temp = 0
         self._shed_stat_power = 0
         self._shed_stat_optout = 0
-        self._today_energy_kwh = 0
-        self._hour_energy_kwh = 0
+        self._today_energy_kwh = None
+        self._hour_energy_kwh = None
         self._temperature_format = TEMP_CELSIUS
         self._energy_stat_time = time.time() - 1500
         self._is_low_voltage = device_info["signature"]["type"] in \
