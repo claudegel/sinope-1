@@ -199,3 +199,23 @@ set_cycle_length:
     value:
       description: cycle lencht in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
       example: "10 min"
+
+set_eco_status:
+  description: Set eco-Sinope status to on/off for thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb thermostat.
+      example: "climate.neviweb_climate_kitchen"
+    status:
+      description: Set to «0» to turn off Eco-Sinope, to «1» to turn on Eco-Sinope.
+      example: 1
+
+set_switch_eco_status:
+  description: Set eco-Sinope status to on/off for switch.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb switch.
+      example: "switch.neviweb_switch_garage"
+    status:
+      description: Set to «none» to turn off Eco-Sinope, to «planned» to turn on Eco-Sinope.
+      example: "planned"

@@ -36,6 +36,8 @@ from .const import (
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_SETPOINT_MODE,
+    ATTR_SHED_STATUS,
+    ATTR_SHED_PLANNING,
     ATTR_SIGNATURE,
     ATTR_TIME,
     ATTR_TIMER,
@@ -44,7 +46,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '2.0.2'
+VERSION = '2.1.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -471,6 +473,18 @@ class NeviwebClient(object):
         """Set low voltage thermostats auxiliary heating output and cycle."""
         data = {ATTR_AUX_CONFIG: output, ATTR_AUX_CYCLE_LENGTH: length}
         _LOGGER.debug("aux_cycle.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_eco_status(self, device_id, status):
+        """Set thermostats eco status on/off."""
+        data = {ATTR_SHED_STATUS:{"temperature": status,"power":0,"optOut":0}}
+        _LOGGER.debug("Eco.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_switch_eco_status(self, device_id, status):
+        """Set switch eco status on/off."""
+        data = {ATTR_SHED_PLANNING: status}
+        _LOGGER.debug("Eco.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_air_floor_mode(self, device_id, mode):
