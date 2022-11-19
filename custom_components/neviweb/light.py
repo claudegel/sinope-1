@@ -153,7 +153,8 @@ async def async_setup_platform(
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
                 "dimmer" if device_info["signature"]["type"] in DEVICE_TYPE_DIMMER 
                 else "light", device_info["name"])
-            entities.append(NeviwebLight(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(NeviwebLight(data, device_info, device_name, device_sku))
     for device_info in data.neviweb_client.gateway_data2:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
@@ -161,7 +162,8 @@ async def async_setup_platform(
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
                 "dimmer" if device_info["signature"]["type"] in DEVICE_TYPE_DIMMER 
                 else "light", device_info["name"])
-            entities.append(NeviwebLight(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(NeviwebLight(data, device_info, device_name, device_sku))
             
     async_add_entities(entities, True)
 
@@ -266,9 +268,10 @@ def brightness_from_percentage(percent):
 class NeviwebLight(LightEntity):
     """Implementation of a neviweb light."""
 
-    def __init__(self, data, device_info, name):
+    def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb_client
         self._id = device_info["id"]
         self._wattage_override = 0
@@ -387,6 +390,7 @@ class NeviwebLight(LightEntity):
                      'daily_kwh': self._today_energy_kwh,
                      'led_on': self._led_on,
                      'led_off': self._led_off,
+                     'sku': self._sku,
                      'id': self._id})
         return data
 
