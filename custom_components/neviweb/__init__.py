@@ -477,7 +477,7 @@ class NeviwebClient(object):
 
     def set_eco_status(self, device_id, status):
         """Set thermostats eco status on/off."""
-         data = {ATTR_SHED_STATUS:{"temperature": status,"power":0,"optOut":0}}
+        data = {ATTR_SHED_STATUS:{"temperature": status,"power":0,"optOut":0}}
         _LOGGER.debug("Eco.data = %s", data)
         self.set_device_attributes(device_id, data)
 
