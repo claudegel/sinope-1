@@ -68,22 +68,25 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
-            entities.append(NeviwebSensor(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(NeviwebSensor(data, device_info, device_name, device_sku))
     for device_info in data.neviweb_client.gateway_data2:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
-            entities.append(NeviwebSensor(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(NeviwebSensor(data, device_info, device_name, device_sku))
 
     async_add_entities(entities, True)
 
 class NeviwebSensor(Entity):
     """Implementation of a Neviweb sensor."""
 
-    def __init__(self, data, device_info, name):
+    def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb_client
         self._id = device_info["id"]
         self._gateway_status = None
@@ -153,6 +156,7 @@ class NeviwebSensor(Entity):
         """Return the state attributes."""
         return {'Gateway_status': self._gateway_status,
                 'Local_sync': self._sync,
+                'sku': self._sku,
                 'id': self._id}
 
     @property
