@@ -121,13 +121,15 @@ async def async_setup_platform(
             "type" in device_info["signature"] and \
             device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
-            entities.append(NeviwebSwitch(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(NeviwebSwitch(data, device_info, device_name, device_sku))
     for device_info in data.neviweb_client.gateway_data2:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
             device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
-            entities.append(NeviwebSwitch(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(NeviwebSwitch(data, device_info, device_name, device_sku))
 
     async_add_entities(entities, True)
 
@@ -206,17 +208,18 @@ async def async_setup_platform(
 class NeviwebSwitch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
-    def __init__(self, data, device_info, name):
+    def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb_client
         self._id = device_info["id"]
         self._wattage = 0
         self._brightness = 0
         self._operation_mode = 1
         self._current_power_w = 0
-        self._today_energy_kwh = 0
-        self._hour_energy_kwh = 0
+        self._today_energy_kwh = None
+        self._hour_energy_kwh = None
         self._rssi = None
         self._timer = 0
         self._occupancy = None
@@ -329,6 +332,7 @@ class NeviwebSwitch(SwitchEntity):
                 'wattage': self._wattage,
                 'hourly_kwh': self._hour_energy_kwh,
                 'daily_kwh': self._today_energy_kwh,
+                'sku': self._sku,
                 'id': self._id}
 
     @property
