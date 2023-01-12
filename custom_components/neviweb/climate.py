@@ -819,6 +819,7 @@ class NeviwebThermostat(ClimateEntity):
                     'alarm1_severity': self._alarm_1_severity,
                     'alarm1_duration': self._alarm_1_duration,
                     'sku': self._sku,
+                    'model': self._model,
                     'id': self._id})
         return data
 
