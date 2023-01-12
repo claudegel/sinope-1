@@ -3,7 +3,7 @@ Support for Neviweb thermostat.
 type 10 = thermostat TH1120RF 3000W and 4000W, model 1120, 1122
 type 10 = thermostat TH1121RF 3000W and 4000W, (Public place) model 1121, 1123
 type 20 = thermostat TH1300RF 3600W floor, model 735
-type 20 = thermostat TH1500RF double pole thermostat, model 735
+type 20 = thermostat TH1500RF double pole thermostat, model 735-DP
 type 21 = thermostat TH1400RF low voltage, model 735
 type 10 = thermostat OTH2750-GT Ouellet,
 type 20 = thermostat OTH3600-GA-GT Ouellet floor,
@@ -638,7 +638,8 @@ class NeviwebThermostat(ClimateEntity):
                         if ATTR_FLOOR_TEMP in device_data:
                             self._floor_temperature = device_data[ATTR_FLOOR_TEMP]["value"]
                             self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
-                        self._aux_heat = device_data[ATTR_AUX_CONFIG]
+                        if ATTR_AUX_CONFIG in device_data:
+                            self._aux_heat = device_data[ATTR_AUX_CONFIG]
                         self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
                         if ATTR_FLOOR_AIR_LIMIT in device_data:
                             self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
