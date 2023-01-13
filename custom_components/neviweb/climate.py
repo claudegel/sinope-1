@@ -3,7 +3,7 @@ Support for Neviweb thermostat.
 type 10 = thermostat TH1120RF 3000W and 4000W, model 1120, 1122
 type 10 = thermostat TH1121RF 3000W and 4000W, (Public place) model 1121, 1123
 type 20 = thermostat TH1300RF 3600W floor, model 735
-type 20 = thermostat TH1500RF double pole thermostat,
+type 20 = thermostat TH1500RF double pole thermostat, model 735-DP
 type 21 = thermostat TH1400RF low voltage, model 735
 type 10 = thermostat OTH2750-GT Ouellet,
 type 20 = thermostat OTH3600-GA-GT Ouellet floor,
@@ -599,7 +599,7 @@ class NeviwebThermostat(ClimateEntity):
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_data)
-
+        _LOGGER.debug("Device data for %s: %s", self._name, device_data)
         if "error" not in device_data:
             if "errorCode" not in device_data:
                 self._cur_temp_before = self._cur_temp
@@ -631,19 +631,29 @@ class NeviwebThermostat(ClimateEntity):
                     self._wattage = device_data[ATTR_WATTAGE_OVERRIDE]
                 if self._is_floor:
                     if self._model == 735:
-                        self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                        if ATTR_FLOOR_MODE in device_data:
+                            self._floor_mode = device_data[ATTR_FLOOR_MODE]
                         if ATTR_FLOOR_SETPOINT in device_data:
                             self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
-                        self._floor_temperature = device_data[ATTR_FLOOR_TEMP]["value"]
-                        self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
-                        self._aux_heat = device_data[ATTR_AUX_CONFIG]
-                        self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
-                        self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
-                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
-                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
-                        self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
-                        self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
-                        self._sensor_type = device_data[ATTR_FLOOR_SENSOR_TYPE]
+                        if ATTR_FLOOR_TEMP in device_data:
+                            self._floor_temperature = device_data[ATTR_FLOOR_TEMP]["value"]
+                            self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
+                        if ATTR_AUX_CONFIG in device_data:
+                            self._aux_heat = device_data[ATTR_AUX_CONFIG]
+                        if ATTR_AUX_WATTAGE_OVERRIDE in device_data:
+                            self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
+                        if ATTR_FLOOR_AIR_LIMIT in device_data:
+                            self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                        if ATTR_FLOOR_MAX in device_data:
+                            self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                        if ATTR_FLOOR_MIN in device_data:
+                            self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                        if ATTR_FLOOR_SETPOINT_MAX in device_data:
+                            self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
+                        if ATTR_FLOOR_SETPOINT_MIN in device_data:
+                            self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
+                        if ATTR_FLOOR_SENSOR_TYPE in device_data:
+                            self._sensor_type = device_data[ATTR_FLOOR_SENSOR_TYPE]
                         if ATTR_BACKLIGHT_MODE in device_data:
                             self._backlight = device_data[ATTR_BACKLIGHT_MODE]
 #                        else:
@@ -758,10 +768,11 @@ class NeviwebThermostat(ClimateEntity):
             data.update({'eco_status': self._shed_stat_temp,
                     'eco_power': self._shed_stat_power,
                     'eco_optout': self._shed_stat_optout})
+        if self._is_floor and not self._sku == "TH1500RF":
+            data.update({'auxiliary_status': self._aux_heat,
+                    'auxiliary_load': self._aux_wattage})
         if self._is_floor:
             data.update({'sensor_mode': self._floor_mode,
-                    'auxiliary_status': self._aux_heat,
-                    'auxiliary_load': self._aux_wattage,
                     'floor_sensor_type': self._sensor_type,
                     'floor_setpoint': self._floor_setpoint,
                     'floor_temperature': self._floor_temperature,
@@ -810,6 +821,7 @@ class NeviwebThermostat(ClimateEntity):
                     'alarm1_severity': self._alarm_1_severity,
                     'alarm1_duration': self._alarm_1_duration,
                     'sku': self._sku,
+                    'model': self._model,
                     'id': self._id})
         return data
 
