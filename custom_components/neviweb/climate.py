@@ -768,10 +768,11 @@ class NeviwebThermostat(ClimateEntity):
             data.update({'eco_status': self._shed_stat_temp,
                     'eco_power': self._shed_stat_power,
                     'eco_optout': self._shed_stat_optout})
+        if self._is_floor and not self._sku == "TH1500RF":
+            data.update({'auxiliary_status': self._aux_heat,
+                    'auxiliary_load': self._aux_wattage})
         if self._is_floor:
             data.update({'sensor_mode': self._floor_mode,
-                    'auxiliary_status': self._aux_heat,
-                    'auxiliary_load': self._aux_wattage,
                     'floor_sensor_type': self._sensor_type,
                     'floor_setpoint': self._floor_setpoint,
                     'floor_temperature': self._floor_temperature,
