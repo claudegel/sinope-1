@@ -640,7 +640,8 @@ class NeviwebThermostat(ClimateEntity):
                             self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
                         if ATTR_AUX_CONFIG in device_data:
                             self._aux_heat = device_data[ATTR_AUX_CONFIG]
-                        self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
+                        if ATTR_AUX_WATTAGE_OVERRIDE in device_data:
+                            self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
                         if ATTR_FLOOR_AIR_LIMIT in device_data:
                             self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                         if ATTR_FLOOR_MAX in device_data:
