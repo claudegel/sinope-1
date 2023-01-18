@@ -619,7 +619,8 @@ class NeviwebThermostat(ClimateEntity):
                 if ATTR_EARLY_START in device_data:
                     self._early_start = device_data[ATTR_EARLY_START]
                 self._keypad = device_data[ATTR_KEYPAD]
-                self._display_2 = device_data[ATTR_DISPLAY_2]
+                if ATTR_DISPLAY_2 in device_data:
+                    self._display_2 = device_data[ATTR_DISPLAY_2]
                 self._temperature_format = device_data[ATTR_TEMP]
                 self._time_format = device_data[ATTR_TIME]
                 if ATTR_BACKLIGHT in device_data:
@@ -627,7 +628,8 @@ class NeviwebThermostat(ClimateEntity):
 #                else:
 #                    _LOGGER.debug("Attribute backlightIntensityIdle is missing: %s", device_data)
                 if not self._is_low_voltage:
-                    self._wattage = device_data[ATTR_WATTAGE]["value"]
+                    if ATTR_WATTAGE in device_data:
+                        self._wattage = device_data[ATTR_WATTAGE]["value"]
                 else:
                     self._wattage = device_data[ATTR_WATTAGE_OVERRIDE]
                 if self._is_floor:
