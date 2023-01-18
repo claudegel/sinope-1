@@ -65,6 +65,7 @@ MODE_MANUAL = "manual"
 MODE_AWAY = "away"
 MODE_OFF = "off"
 MODE_HOME = "home"
+MODE_FROST_PROTEC = "frostProtection"
 
 SERVICE_SET_LED_INDICATOR = "set_led_indicator"
 SERVICE_SET_CLIMATE_KEYPAD_LOCK = "set_climate_keypad_lock"
