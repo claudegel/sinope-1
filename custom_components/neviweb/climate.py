@@ -6,7 +6,7 @@ type 20 = thermostat TH1300RF 3600W floor, model 735
 type 20 = thermostat TH1500RF double pole thermostat, model 735-DP
 type 21 = thermostat TH1400RF low voltage, model 735
 type 10 = thermostat OTH2750-GT Ouellet,
-type 20 = thermostat OTH3600-GA-GT Ouellet floor,
+type 20 = thermostat OTH3600-GA-GT Ouellet floor, model 735
 type 10 = thermostat OTH4000-GT Ouellet,
 type 20 = thermostat INSTINCT Connect, Flextherm,
 For more details about this platform, please refer to the documentation at  
@@ -616,7 +616,8 @@ class NeviwebThermostat(ClimateEntity):
                 self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                 self._min_temp = float(device_data[ATTR_ROOM_SETPOINT_MIN])
                 self._max_temp = float(device_data[ATTR_ROOM_SETPOINT_MAX])
-                self._early_start = device_data[ATTR_EARLY_START]
+                if ATTR_EARLY_START in device_data:
+                    self._early_start = device_data[ATTR_EARLY_START]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._display_2 = device_data[ATTR_DISPLAY_2]
                 self._temperature_format = device_data[ATTR_TEMP]
@@ -944,11 +945,15 @@ class NeviwebThermostat(ClimateEntity):
 
     def set_early_start(self, value):
         """set early start heating for thermostat, On = early start set to on, Off = set to Off"""
-        start = value["start"]
-        entity = value["id"]
-        self._client.set_early_start(
-            entity, start)
-        self._early_start = start
+        """This function is not available for Ouellet OTH3600-GA-GT"""
+        if self._sku == "OTH3600-GA-GT":
+            self._early_start = None
+        else:    
+            start = value["start"]
+            entity = value["id"]
+            self._client.set_early_start(
+                entity, start)
+            self._early_start = start
 
     def set_time_format(self, value):
         """set time format 12h or 24h"""
