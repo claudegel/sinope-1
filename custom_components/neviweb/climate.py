@@ -8,7 +8,7 @@ type 21 = thermostat TH1400RF low voltage, model 735
 type 10 = thermostat OTH2750-GT Ouellet,
 type 20 = thermostat OTH3600-GA-GT Ouellet floor, model 735
 type 10 = thermostat OTH4000-GT Ouellet,
-type 20 = thermostat INSTINCT Connect, Flextherm,
+type 20 = thermostat INSTINCT Connect, Flextherm, FLP45
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -28,6 +28,7 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
     PRESET_AWAY,
+    PRESET_ECO,
     PRESET_NONE,
     SUPPORT_AUX_HEAT,
     SUPPORT_PRESET_MODE,
@@ -64,6 +65,7 @@ from .const import (
     ATTR_AUX_CONFIG,
     ATTR_AUX_CYCLE_LENGTH,
     ATTR_AUX_WATTAGE_OVERRIDE,
+    ATTR_AUX_OUTPUT_STAGE,
     ATTR_AWAY_SETPOINT,
     ATTR_BACKLIGHT,
     ATTR_BACKLIGHT_MODE,
@@ -97,6 +99,7 @@ from .const import (
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_AWAY,
+    MODE_FROST_PROTEC,
     MODE_MANUAL,
     MODE_OFF,
     SERVICE_SET_AIR_FLOOR_MODE,
@@ -159,6 +162,7 @@ PRESET_BYPASS = 'temporary'
 PRESET_MODES = [
     PRESET_NONE,
     PRESET_AWAY,
+    PRESET_ECO,
     PRESET_BYPASS,
 ]
 
@@ -553,6 +557,7 @@ class NeviwebThermostat(ClimateEntity):
         self._cycle_length = None
         self._aux_cycle_config = None
         self._aux_cycle_length = None
+        self._aux_output_stage = None
         self._pump_protec_freq = None
         self._pump_protec_duration = None
         self._alarm_0_type = None
@@ -583,7 +588,7 @@ class NeviwebThermostat(ClimateEntity):
             ECO_ATTRIBUTE = []
         if self._is_floor:
             FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
-                            ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_ALARM_1]
+                            ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_ALARM_1, ATTR_AUX_OUTPUT_STAGE]
         else:
             FLOOR_ATTRIBUTE = []
         if self._is_low_voltage:
@@ -645,6 +650,8 @@ class NeviwebThermostat(ClimateEntity):
                             self._aux_heat = device_data[ATTR_AUX_CONFIG]
                         if ATTR_AUX_WATTAGE_OVERRIDE in device_data:
                             self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
+                        if ATTR_AUX_OUTPUT_STAGE in device_data:
+                            self._aux_output_stage = device_data[ATTR_AUX_OUTPUT_STAGE]
                         if ATTR_FLOOR_AIR_LIMIT in device_data:
                             self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                         if ATTR_FLOOR_MAX in device_data:
@@ -773,7 +780,8 @@ class NeviwebThermostat(ClimateEntity):
                     'eco_optout': self._shed_stat_optout})
         if self._is_floor and not self._sku == "TH1500RF":
             data.update({'auxiliary_status': self._aux_heat,
-                    'auxiliary_load': self._aux_wattage})
+                    'auxiliary_load': self._aux_wattage,
+                    'aux_output_stage': self._aux_output_stage})
         if self._is_floor:
             data.update({'sensor_mode': self._floor_mode,
                     'floor_sensor_type': self._sensor_type,
@@ -893,6 +901,8 @@ class NeviwebThermostat(ClimateEntity):
             return PRESET_BYPASS
         elif self._operation_mode == MODE_AWAY:
             return PRESET_AWAY
+        elif self._operation_mode == MODE_FROST_PROTEC:
+            return PRESET_ECO
         else:
             return PRESET_NONE
 
@@ -1033,6 +1043,8 @@ class NeviwebThermostat(ClimateEntity):
         elif preset_mode == PRESET_BYPASS:
             if self._operation_mode == MODE_AUTO:
                 self._client.set_setpoint_mode(self._id, MODE_AUTO_BYPASS)
+        elif preset_mode == PRESET_ECO:
+            self._client.set_setpoint_mode(self._id, MODE_FROST_PROTEC)
         elif preset_mode == PRESET_NONE:
             # Re-apply current hvac_mode without any preset
             self.set_hvac_mode(self.hvac_mode)
