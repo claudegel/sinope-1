@@ -518,6 +518,12 @@ def neviweb_to_ha(value):
         return keys[0]
     return None
 
+def temp_format_to_ha(value):
+    if value == "celsius":
+        return TEMP_CELSIUS
+    else:
+        return TEMP_FAHRENHEIT
+
 class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
@@ -763,7 +769,7 @@ class NeviwebThermostat(ClimateEntity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        return TEMP_CELSIUS
+        return temp_format_to_ha(self._temperature_format)
 
     @property
     def device_class(self):
