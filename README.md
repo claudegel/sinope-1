@@ -233,5 +233,5 @@ customize: !include customize.yaml
 You see something wrong or something that could be improved? Don't hesitate to fork me and send me pull requests.
 
 ## Buy me a coffee
-If you want to make donation as appreciation of my work, you can do so via PayPal (preferred) or buy me a coffee. Thank you!
+If you want to make donation as appreciation of my work, you can do so via PayPal. Thank you!
 - [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/)
