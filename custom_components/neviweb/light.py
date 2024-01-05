@@ -349,7 +349,7 @@ class NeviwebLight(LightEntity):
             self._energy_stat_time = time.time()
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
-        
+
     @property
     def supported_color_modes(self):
         """Return the list of supported colorMode features."""
@@ -357,7 +357,7 @@ class NeviwebLight(LightEntity):
             return ColorMode.BRIGHTNESS
         else:
             return ColorMode.ONOFF
-    
+
     @property
     def unique_id(self):
         """Return unique ID based on Neviweb device ID."""
