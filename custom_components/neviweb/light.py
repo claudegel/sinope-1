@@ -13,10 +13,10 @@ import time
 import custom_components.neviweb as neviweb
 from . import (SCAN_INTERVAL)
 from homeassistant.components.light import (
-    LightEntity,
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
-    SUPPORT_BRIGHTNESS,
+    ColorMode,
+    LightEntity,
 )
 
 from homeassistant.const import (
@@ -351,11 +351,12 @@ class NeviwebLight(LightEntity):
             self._energy_stat_time = start
         
     @property
-    def supported_features(self):
-        """Return the list of supported features."""
+    def supported_color_modes(self):
+        """Return the list of supported colorMode features."""
         if self._is_dimmable:
-            return SUPPORT_BRIGHTNESS
-        return 0
+            return ColorMode.BRIGHTNESS
+        else:
+            return ColorMode.ONOFF
     
     @property
     def unique_id(self):
