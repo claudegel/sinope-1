@@ -46,7 +46,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '2.1.5'
+VERSION = '2.1.6'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -331,7 +331,7 @@ class NeviwebClient(object):
         if "values" in data:
             return data["values"]
         else:
-            _LOGGER.debug("Daily stat error: %s", data)
+            _LOGGER.debug("Daily stat error: %s, %s", data, device_id)
             return None
 
     def get_device_hourly_stats(self, device_id):
@@ -353,7 +353,7 @@ class NeviwebClient(object):
         if "values" in data:
             return data["values"]
         else:
-            _LOGGER.debug("Hourly stat error: %s", data)
+            _LOGGER.debug("Hourly stat error: %s, %s", data, device_id)
             return None
 
     def set_brightness(self, device_id, brightness):
