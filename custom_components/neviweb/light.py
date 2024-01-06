@@ -354,12 +354,13 @@ class NeviwebLight(LightEntity):
     def supported_color_modes(self):
         """Return the list of supported colorMode features."""
         if self._is_dimmable:
-            return ColorMode.BRIGHTNESS
+            return {ColorMode.BRIGHTNESS}
         else:
-            return ColorMode.ONOFF
+            return {ColorMode.ONOFF}
 
     @property
     def color_mode(self):
+        """ Set ColorMode """
         if self._is_dimmable:
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
@@ -383,10 +384,9 @@ class NeviwebLight(LightEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        if self._is_dimmable and self._brightness_pct:
+        if self._is_dimmable:
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
-        data.update({#'alarm': self._alarm,
-                     'operation_mode': self.operation_mode,
+        data.update({'operation_mode': self.operation_mode,
                      'rssi': self._rssi,
                      'keypad': self._keypad,
                      'timer': self._timer,
