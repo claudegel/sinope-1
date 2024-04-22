@@ -89,11 +89,13 @@ from .const import (
     ATTR_STATUS,
     ATTR_TEMP,
     ATTR_TIME,
+    ATTR_VALUE,
     ATTR_WATTAGE,
     ATTR_WATTAGE_OVERRIDE,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_AWAY,
+    MODE_EM_HEAT,
     MODE_FROST_PROTEC,
     MODE_MANUAL,
     MODE_OFF,
@@ -103,6 +105,7 @@ from .const import (
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
     SERVICE_SET_CYCLE_LENGTH,
     SERVICE_SET_EARLY_START,
+    SERVICE_SET_EM_HEAT,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_SETPOINT_MAX,
     SERVICE_SET_SETPOINT_MIN,
@@ -114,7 +117,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE)
-SUPPORT_AUX_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.AUX_HEAT)
+SUPPORT_AUX_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE)
 
 DEFAULT_NAME = "neviweb climate"
 
@@ -261,6 +264,13 @@ SET_ECO_STATUS_SCHEMA = vol.Schema(
         vol.Required(ATTR_STATUS): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=1)
         ),
+    }
+)
+
+SET_EM_HEAT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_VALUE): vol.In(["on", "off"]),
     }
 )
 
@@ -423,6 +433,19 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_em_heat_service(service):
+        """Set emergency heat on/off for thermostats."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                if service.data[ATTR_VALUE] == "on":
+                    thermostat.turn_em_heat_on()
+                else:
+                    thermostat.turn_em_heat_off()
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -507,6 +530,13 @@ async def async_setup_platform(
         schema=SET_ECO_STATUS_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_EM_HEAT,
+        set_em_heat_service,
+        schema=SET_EM_HEAT_SCHEMA,
+    )
+
 def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
     if keys:
@@ -540,7 +570,7 @@ class NeviwebThermostat(ClimateEntity):
         self._operation_mode = None
         self._heat_level = 0
         self._floor_mode = None
-        self._aux_heat = None
+        self._em_heat = None
         self._aux_wattage = None
         self._floor_air_limit = None
         self._floor_max = None
@@ -648,7 +678,7 @@ class NeviwebThermostat(ClimateEntity):
                             self._floor_temperature = device_data[ATTR_FLOOR_TEMP]["value"]
                             self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
                         if ATTR_AUX_CONFIG in device_data:
-                            self._aux_heat = device_data[ATTR_AUX_CONFIG]
+                            self._em_heat = device_data[ATTR_AUX_CONFIG]
                         if ATTR_AUX_WATTAGE_OVERRIDE in device_data:
                             self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
                         if ATTR_AUX_OUTPUT_STAGE in device_data:
@@ -683,7 +713,7 @@ class NeviwebThermostat(ClimateEntity):
                     self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
                     self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
                     self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
-                    self._aux_heat = device_data[ATTR_AUX_CONFIG]
+                    self._em_heat = device_data[ATTR_AUX_CONFIG]
                     self._aux_cycle_config = device_data[ATTR_AUX_CONFIG]
                     self._aux_cycle_length = device_data[ATTR_AUX_CYCLE_LENGTH]
                     self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
@@ -780,7 +810,7 @@ class NeviwebThermostat(ClimateEntity):
                     'eco_power': self._shed_stat_power,
                     'eco_optout': self._shed_stat_optout})
         if self._is_floor and not self._sku == "TH1500RF":
-            data.update({'auxiliary_status': self._aux_heat,
+            data.update({'auxiliary_status': self._em_heat,
                     'auxiliary_load': self._aux_wattage,
                     'aux_output_stage': self._aux_output_stage})
         if self._is_floor:
@@ -796,7 +826,7 @@ class NeviwebThermostat(ClimateEntity):
                     'floor_setpoint_min': self._floor_setpoint_min})
         if self._is_low_voltage:
             data.update({'sensor_mode': self._floor_mode,
-                    'auxiliary_status': self._aux_heat,
+                    'auxiliary_status': self._em_heat,
                     'auxiliary_load': self._aux_wattage,
                     'auxiliary_output_conf': self._aux_cycle_config,
                     'auxiliary_output_cycle': neviweb_to_ha(self._aux_cycle_length),
@@ -813,6 +843,7 @@ class NeviwebThermostat(ClimateEntity):
                     'pump_protection_freq': self._pump_protec_freq,
                     'pump_protection_duration': self._pump_protec_duration})
         data.update ({'heat_level': self._heat_level,
+                    'pi_heating_demand': self._heat_level,
                     'wattage': self._wattage,
                     'hourly_kwh': self._hour_energy_kwh,
                     'daily_kwh': self._today_energy_kwh,
@@ -846,9 +877,9 @@ class NeviwebThermostat(ClimateEntity):
             return SUPPORT_FLAGS
 
     @property
-    def is_aux_heat(self):
-        """Return the min temperature."""
-        return self._aux_heat in ["slave", "shortCycle", "longCycle"]
+    def is_em_heat(self):
+        """Return True if em_heat is active."""
+        return self._em_heat in ["slave", "shortCycle", "longCycle"]
 
     @property
     def min_temp(self):
@@ -1076,20 +1107,20 @@ class NeviwebThermostat(ClimateEntity):
         self._aux_cycle_config = output
         self._aux_cycle_length = length
 
-    def turn_aux_heat_on(self):
-        """Turn auxiliary heater on."""
+    def turn_em_heat_on(self):
+        """Turn emergency heater on."""
         if self._is_floor:
-            self._aux_heat = "slave"
+            self._em_heat = "slave"
         else:
             if self._aux_cycle_length == "short":
-                self._aux_heat = "shortCycle"
+                self._em_heat = "shortCycle"
             else:
-                self._aux_heat = "longCycle"
-        self._client.set_aux_heat(
-            self._id, self._aux_heat, self._aux_cycle_length, self._is_floor)
+                self._em_heat = "longCycle"
+        self._client.set_em_heat(
+            self._id, self._em_heat, self._aux_cycle_length, self._is_floor)
 
-    def turn_aux_heat_off(self):
-        """Turn auxiliary heater off."""
-        self._aux_heat = "off"
-        self._client.set_aux_heat(
+    def turn_em_heat_off(self):
+        """Turn emergency heater off."""
+        self._em_heat = "off"
+        self._client.set_em_heat(
             self._id, "off", self._aux_cycle_length, self._is_floor)

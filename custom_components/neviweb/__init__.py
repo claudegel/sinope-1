@@ -46,7 +46,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '2.1.7'
+VERSION = '2.1.8'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -331,7 +331,7 @@ class NeviwebClient(object):
         if "values" in data:
             return data["values"]
         else:
-            _LOGGER.debug("Daily stat error: %s, %s", data, device_id)
+            _LOGGER.debug("Daily stat error: %s, device: %s", data, device_id)
             return None
 
     def get_device_hourly_stats(self, device_id):
@@ -353,7 +353,7 @@ class NeviwebClient(object):
         if "values" in data:
             return data["values"]
         else:
-            _LOGGER.debug("Hourly stat error: %s, %s", data, device_id)
+            _LOGGER.debug("Hourly stat error: %s, device: %s", data, device_id)
             return None
 
     def set_brightness(self, device_id, brightness):
@@ -451,8 +451,8 @@ class NeviwebClient(object):
         _LOGGER.debug("setpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_heat(self, device_id, heat, cycle, floor):
-        """Set floor and low voltage thermostats auxiliary heating slave/off."""
+    def set_em_heat(self, device_id, heat, cycle, floor):
+        """Set floor and low voltage thermostats emergency heating slave/off."""
         if floor:
             data = {ATTR_AUX_CONFIG: heat}
         else:
@@ -460,7 +460,7 @@ class NeviwebClient(object):
                 data = {ATTR_AUX_CONFIG: heat}
             else:
                 data = {ATTR_AUX_CONFIG: heat, ATTR_AUX_CYCLE_LENGTH: cycle}
-        _LOGGER.debug("aux_heat.data = %s", data)
+        _LOGGER.debug("em_heat.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_cycle_length(self, device_id, length):

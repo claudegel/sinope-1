@@ -118,6 +118,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb.set_aux_cycle_length, to set low voltage thermostat auxiliary cycle length and output. Values are: "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min". To trun on/off auxiliary heating just use the button at the bottom of the thermostat card.
 - neviweb.set_eco_status, to set eco status on/off of thermostats.
 - neviweb.set_switch_eco_status, to set switch eco status on/off.
+- neviweb.set_em_heat, to turn on/off auxiliary/emergency heating.
  
 ## Catch Éco Sinopé signal for peak period
 
