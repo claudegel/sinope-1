@@ -40,6 +40,7 @@ from homeassistant.helpers.entity import Entity
 from .const import (
     DOMAIN,
     ATTR_LOCALSYNC,
+    ATTR_OCCUPANCY,
     ATTR_STATUS,
 )
 
@@ -69,27 +70,31 @@ async def async_setup_platform(
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
-            entities.append(NeviwebSensor(data, device_info, device_name, device_sku))
+            location_id = device_info["location$id"]
+            entities.append(NeviwebSensor(data, device_info, device_name, device_sku, location_id))
     for device_info in data.neviweb_client.gateway_data2:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
-            entities.append(NeviwebSensor(data, device_info, device_name, device_sku))
+            location_id = device_info["location$id"]
+            entities.append(NeviwebSensor(data, device_info, device_name, device_sku, location_id))
 
     async_add_entities(entities, True)
 
 class NeviwebSensor(Entity):
     """Implementation of a Neviweb sensor."""
 
-    def __init__(self, data, device_info, name, sku):
+    def __init__(self, data, device_info, name, sku, location):
         """Initialize."""
         self._name = name
         self._sku = sku
+        self._location = location
         self._client = data.neviweb_client
         self._id = device_info["id"]
         self._gateway_status = None
+        self._occupancyMode = None
         self._sync = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -97,6 +102,7 @@ class NeviwebSensor(Entity):
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_status = self._client.get_device_status(self._id)
+        neviweb_status = self._client.get_neviweb_status(self._location)
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES)
         end = time.time()
@@ -106,6 +112,7 @@ class NeviwebSensor(Entity):
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_status)
         self._gateway_status = device_status[ATTR_STATUS]
+        self._occupancyMode = neviweb_status[ATTR_OCCUPANCY]
         if "error" not in device_data:
             if "errorCode" not in device_data:
                 self._sync = device_data[ATTR_LOCALSYNC]
@@ -155,6 +162,7 @@ class NeviwebSensor(Entity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         return {'Gateway_status': self._gateway_status,
+                'neviweb_occupancyMode': self._occupancyMode,
                 'Local_sync': self._sync,
                 'sku': self._sku,
                 'id': self._id}

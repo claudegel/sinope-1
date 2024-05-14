@@ -46,7 +46,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '2.1.8'
+VERSION = '2.1.9'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,6 +58,7 @@ LOGIN_URL = "{}/api/login".format(HOST)
 LOCATIONS_URL = "{}/api/locations?account$id=".format(HOST)
 GATEWAY_DEVICE_URL = "{}/api/devices?location$id=".format(HOST)
 DEVICE_DATA_URL = "{}/api/device/".format(HOST)
+NEVIWEB_LOCATION = "{}/api/location/".format(HOST)
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
@@ -304,6 +305,28 @@ class NeviwebClient(object):
         # Update cookies
         #self._cookies.update(raw_res.cookies)
         # Prepare data
+        data = raw_res.json()
+        if "error" in data:
+            if data["error"]["code"] == "USRSESSEXP":
+                _LOGGER.error("Session expired. Set a scan_interval less" +
+                "than 10 minutes, otherwise the session will end.")
+                #raise PyNeviweb130Error("Session expired... reconnecting...")
+        return data
+
+    def get_neviweb_status(self, location):
+        """Get neviweb occupancyMode status."""
+        # Prepare return
+        data = {}
+        # Http request
+        try:
+            raw_res = requests.get(NEVIWEB_LOCATION + str(location) +
+                "/notifications", headers=self._headers, cookies=self._cookies,
+                timeout=self._timeout)
+            _LOGGER.debug("Received neviweb status: %s", raw_res.json())
+        except requests.exceptions.ReadTimeout:
+            return {"errorCode": "ReadTimeout"}
+        except Exception as e:
+            raise PyNeviwebError("Cannot get neviweb status", e)
         data = raw_res.json()
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
