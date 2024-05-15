@@ -161,9 +161,9 @@ class NeviwebSensor(Entity):
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        return {'Gateway_status': self._gateway_status,
+        return {'gateway_status': self._gateway_status,
                 'neviweb_occupancyMode': self._occupancyMode,
-                'Local_sync': self._sync,
+                'local_sync': self._sync,
                 'sku': self._sku,
                 'id': self._id}
 
