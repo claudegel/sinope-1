@@ -28,8 +28,6 @@ from homeassistant.helpers import (
     device_registry,
 )
 
-from homeassistant.helpers.typing import HomeAssistantType
-
 from homeassistant.components.sensor import SensorDeviceClass
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
@@ -59,7 +57,7 @@ async def async_setup_platform(
     config,
     async_add_entities,
     discovery_info=None,
-):
+) -> None:
     """Set up the Neviweb sensor."""
     data = hass.data[DOMAIN]
     
