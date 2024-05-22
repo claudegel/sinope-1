@@ -28,8 +28,6 @@ from homeassistant.helpers import (
     device_registry,
 )
 
-from homeassistant.helpers.typing import HomeAssistantType
-
 from homeassistant.components.sensor import SensorDeviceClass
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
@@ -59,7 +57,7 @@ async def async_setup_platform(
     config,
     async_add_entities,
     discovery_info=None,
-):
+) -> None:
     """Set up the Neviweb sensor."""
     data = hass.data[DOMAIN]
     
@@ -161,9 +159,9 @@ class NeviwebSensor(Entity):
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        return {'Gateway_status': self._gateway_status,
+        return {'gateway_status': self._gateway_status,
                 'neviweb_occupancyMode': self._occupancyMode,
-                'Local_sync': self._sync,
+                'local_sync': self._sync,
                 'sku': self._sku,
                 'id': self._id}
 

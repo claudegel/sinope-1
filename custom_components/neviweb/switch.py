@@ -30,8 +30,6 @@ from homeassistant.helpers import (
     device_registry,
 )
 
-from homeassistant.helpers.typing import HomeAssistantType
-
 from homeassistant.components.sensor import SensorDeviceClass
 
 from datetime import timedelta
@@ -111,7 +109,7 @@ async def async_setup_platform(
     config,
     async_add_entities,
     discovery_info=None,
-):
+) -> None:
     """Set up the Neviweb switch."""
     data = hass.data[DOMAIN]
     

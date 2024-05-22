@@ -1,8 +1,8 @@
 """Constants for neviweb component."""
 
 DOMAIN = "neviweb"
-CONF_NETWORK = 'network'
-CONF_NETWORK2 = 'network2'
+CONF_NETWORK = "network"
+CONF_NETWORK2 = "network2"
 
 ATTR_SIGNATURE = "signature"
 ATTR_POWER_MODE = "powerMode"

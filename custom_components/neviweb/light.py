@@ -33,8 +33,6 @@ from homeassistant.helpers import (
     service,
 )
 
-from homeassistant.helpers.typing import HomeAssistantType
-
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (
@@ -137,8 +135,8 @@ SET_LIGHT_AWAY_MODE_SCHEMA = vol.Schema(
 )
 
 async def async_setup_platform(
-    hass: HomeAssistantType,
-    config_entry,
+    hass,
+    config,
     async_add_entities,
     discovery_info = None,
 ) -> None:
