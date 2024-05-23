@@ -114,8 +114,18 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-SUPPORT_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE)
-SUPPORT_AUX_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE)
+SUPPORT_FLAGS = (
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.TURN_OFF
+    | ClimateEntityFeature.TURN_ON
+)
+SUPPORT_AUX_FLAGS = (
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.TURN_OFF
+    | ClimateEntityFeature.TURN_ON
+)
 
 DEFAULT_NAME = "neviweb climate"
 
@@ -550,6 +560,9 @@ def temp_format_to_ha(value):
 class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
+    _enable_turn_on_off_backwards_compatibility = False
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+
     def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
@@ -945,6 +958,23 @@ class NeviwebThermostat(ClimateEntity):
             return HVACAction.IDLE
         else:
             return HVACAction.HEATING
+
+    @property
+    def is_on(self):
+        """Return True if mode = HVACMode.HEAT or HVACMode.AUTO."""
+        if self._operation_mode == HVACMode.HEAT or self._operation_mode == HVACMode.AUTO:
+            return True
+        return False
+
+    def turn_on(self):
+        """Turn the thermostat to HVACMode.heat on."""
+        self._client.set_setpoint_mode(self._id, MODE_MANUAL)
+        self._operation_mode = HVACMode.HEAT
+
+    def turn_off(self):
+        """Turn the thermostat to HVACMode.off."""
+        self._client.set_setpoint_mode(self._id, MODE_OFF)
+        self._operation_mode = HVACMode.OFF
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
