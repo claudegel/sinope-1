@@ -46,7 +46,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '2.2.1'
+VERSION = '2.2.2'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -147,7 +147,7 @@ class NeviwebClient(object):
         data = {"username": self._email, "password": self._password, 
             "interface": "neviweb", "stayConnected": 1}
         try:
-            raw_res = requests.post(LOGIN_URL, data=data, 
+            raw_res = requests.post(LOGIN_URL, json=data, 
                 cookies=self._cookies, allow_redirects=False, 
                 timeout=self._timeout)
         except OSError:
