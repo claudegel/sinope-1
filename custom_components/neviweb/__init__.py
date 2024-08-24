@@ -153,6 +153,7 @@ class NeviwebClient(object):
         except OSError:
             raise PyNeviwebError("Cannot submit login form")
         if raw_res.status_code != 200:
+            _LOGGER.debug("Login status: %s", raw_res.json())
             raise PyNeviwebError("Cannot log in")
 
         # Update session
