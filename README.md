@@ -219,7 +219,13 @@ climate.neviweb_climate_thermostat_name:
  In `configuration.yaml` add this
 ```yaml
 customize: !include customize.yaml
-``` 
+```
+
+## Device hard reset
+If you need to hard reset your devices:
+- Light and dimmer:
+  Click and hold lower button for at least 20 sec. The Led will blink yellow. At this moment, rapidly click twice on upper button (doubles clics).
+  The Led will blink red three times.
 
 ## Current Limitations
 - Home Assistant doesn't support operation mode selection for light and switch entities. So you won't see any dropdown list in the UI where you can switch between Auto and Manual mode. You can only see the current mode in the attributes. TODO: register a new service to change operation_mode and another one to set away mode.
