@@ -163,7 +163,7 @@ class NeviwebSensor(Entity):
                 'neviweb_occupancyMode': self._occupancyMode,
                 'local_sync': self._sync,
                 'sku': self._sku,
-                'id': self._id}
+                'id': str(self._id)}
 
     @property
     def state(self):
