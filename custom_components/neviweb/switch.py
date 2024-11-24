@@ -332,7 +332,7 @@ class NeviwebSwitch(SwitchEntity):
                 'hourly_kwh': self._hour_energy_kwh,
                 'daily_kwh': self._today_energy_kwh,
                 'sku': self._sku,
-                'id': self._id}
+                'id': str(self._id)}
 
     @property
     def operation_mode(self):
