@@ -396,7 +396,7 @@ class NeviwebLight(LightEntity):
                      'led_on': self._led_on,
                      'led_off': self._led_off,
                      'sku': self._sku,
-                     'id': self._id})
+                     'id': str(self._id)})
         return data
 
     @property

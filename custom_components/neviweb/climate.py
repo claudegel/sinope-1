@@ -876,7 +876,7 @@ class NeviwebThermostat(ClimateEntity):
                     'alarm1_duration': self._alarm_1_duration,
                     'sku': self._sku,
                     'model': self._model,
-                    'id': self._id})
+                    'id': str(self._id)})
         return data
 
     @property
@@ -893,12 +893,12 @@ class NeviwebThermostat(ClimateEntity):
         return self._em_heat in ["slave", "shortCycle", "longCycle"]
 
     @property
-    def min_temp(self):
+    def min_temp(self) -> float:
         """Return the min temperature."""
         return self._min_temp
 
     @property
-    def max_temp(self):
+    def max_temp(self) -> float:
         """Return the max temperature."""
         return self._max_temp
 
@@ -923,12 +923,12 @@ class NeviwebThermostat(ClimateEntity):
         return SUPPORTED_HVAC_MODES
 
     @property
-    def current_temperature(self):
+    def current_temperature(self) -> float:
         """Return the current temperature."""
         return self._cur_temp
     
     @property
-    def target_temperature (self):
+    def target_temperature(self) -> float:
         """Return the temperature we try to reach."""
         return self._target_temp
 
