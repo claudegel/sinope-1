@@ -6,4 +6,5 @@
   "codeowners": ["@claudegel"],
   "requirements": [],
   "version": "2.2.4"
+  "homeassistant": "2024.12.1"
 }
