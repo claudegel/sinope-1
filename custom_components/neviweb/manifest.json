@@ -1,10 +1,12 @@
 {
   "domain": "neviweb",
   "name": "Sinope Neviweb",
-  "documentation": "https://github.com/claudegel/sinope-1",
-  "dependencies": [],
   "codeowners": ["@claudegel"],
+  "documentation": "https://github.com/claudegel/sinope-1",
+  "issue_tracker": "https://github.com/claudegel/sinope-1/issues",
+  "dependencies": [],
   "requirements": [],
   "version": "2.2.4"
   "homeassistant": "2024.12.1"
+  "iot_class": "cloud_polling"
 }
