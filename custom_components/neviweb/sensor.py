@@ -1,5 +1,6 @@
 """
 Support for Neviweb sensor.
+
 model 125, GT125 gateway
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
@@ -37,9 +38,11 @@ from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.entity import Entity
 from .const import (
     DOMAIN,
-    ATTR_LOCALSYNC,
+    ATTR_LOCAL_SYNC,
+    ATTR_MODE,
     ATTR_OCCUPANCY,
     ATTR_STATUS,
+    SERVICE_SET_NEVIWEB_STATUS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,10 +50,17 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_NAME = 'neviweb sensor'
 
 UPDATE_ATTRIBUTES = [
-    ATTR_LOCALSYNC,
+    ATTR_LOCAL_SYNC,
 ]
 
-IMPLEMENTED_DEVICE_MODEL = [125] #GT125
+IMPLEMENTED_DEVICE_MODEL = [125] # GT125
+
+SET_NEVIWEB_STATUS_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_MODE): vol.In(["home", "away"]),
+    }
+)
 
 async def async_setup_platform(
     hass,
@@ -80,6 +90,24 @@ async def async_setup_platform(
             entities.append(NeviwebSensor(data, device_info, device_name, device_sku, location_id))
 
     async_add_entities(entities, True)
+
+    def set_neviweb_status_service(service):
+        """Set Neviweb global status, home or away."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for sensor in entities:
+            if sensor.entity_id == entity_id:
+                value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
+                sensor.set_neviweb_status(value)
+                sensor.schedule_update_ha_state(True)
+                break
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_NEVIWEB_STATUS,
+        set_neviweb_status_service,
+        schema=SET_NEVIWEB_STATUS_SCHEMA,
+    )
 
 class NeviwebSensor(Entity):
     """Implementation of a Neviweb sensor."""
@@ -113,7 +141,7 @@ class NeviwebSensor(Entity):
         self._occupancyMode = neviweb_status[ATTR_OCCUPANCY]
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                self._sync = device_data[ATTR_LOCALSYNC]
+                self._sync = device_data[ATTR_LOCAL_SYNC]
             else:
                 if device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("Error in reading device %s: (%s), too slow to respond or busy.", self._name, device_data)
@@ -154,7 +182,7 @@ class NeviwebSensor(Entity):
     @property  
     def is_on(self):
         """Return current operation i.e. ON, OFF """
-        return self._gateway_status != None
+        return self._gateway_status is not None
 
     @property
     def extra_state_attributes(self):
@@ -169,3 +197,10 @@ class NeviwebSensor(Entity):
     def state(self):
         """Return the state of the sensor."""
         return self._gateway_status
+
+    def set_neviweb_status(self, value):
+        """Set Neviweb global mode away or home"""
+        mode = value["mode"]
+        entity = value["id"]
+        self._client.post_neviweb_status(entity, str(self._location), mode)
+        self._occupancyMode = mode

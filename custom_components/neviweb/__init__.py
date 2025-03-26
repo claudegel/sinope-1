@@ -31,6 +31,7 @@ from .const import (
     ATTR_KEYPAD,
     ATTR_LED_OFF,
     ATTR_LED_ON,
+    ATTR_MODE,
     ATTR_POWER_MODE,
     ATTR_ROOM_SETPOINT,
     ATTR_ROOM_SETPOINT_MAX,
@@ -46,7 +47,7 @@ from .const import (
 )
 
 #REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '2.2.4'
+VERSION = '2.2.5'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -302,7 +303,7 @@ class NeviwebClient(object):
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
-            raise PyNeviweb130Error("Cannot get GT125 status", e)
+            raise PyNeviwebError("Cannot get GT125 status", e)
         # Update cookies
         #self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -539,3 +540,19 @@ class NeviwebClient(object):
                     continue
                 else:
                     break
+
+    def post_neviweb_status(self, device_id, location, mode):
+        """Send post requests to Neviweb for global occupancy mode"""
+        data = {ATTR_MODE: mode}
+        try:
+            resp = requests.post(NEVIWEB_LOCATION + location + "/mode",
+                json=data, headers=self._headers, cookies=self._cookies,
+                timeout=self._timeout)
+#            _LOGGER.debug("Post requests = %s%s%s %s", NEVIWEB_LOCATION, location, "/mode", data)
+            _LOGGER.debug("Data = %s", data)
+            _LOGGER.debug("Requests response = %s", resp.status_code)
+            _LOGGER.debug("Json Data received= %s", resp.json())
+        except OSError:
+                raise PyNeviwebError("Cannot post Neviweb: %s", data)
+        if "error" in resp.json():
+            _LOGGER.debug("Service error received: %s",resp.json())
