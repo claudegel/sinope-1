@@ -119,6 +119,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb.set_eco_status, to set eco status on/off of thermostats.
 - neviweb.set_switch_eco_status, to set switch eco status on/off.
 - neviweb.set_em_heat, to turn on/off auxiliary/emergency heating.
+- neviweb.set_neviweb_status, to change Neviweb global home/away status.
  
 ## Catch Éco Sinopé signal for peak period
 
