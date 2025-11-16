@@ -171,7 +171,9 @@ You can also post in one of those threads to get help:
 
 ### Turning on Neviweb debug messages in `home-assistant.log` file
 
-To have a maximum of information to help you, please provide a snippet of your `home-assistant.log` file. I've added some debug log messages that could help diagnose the problem.
+home-assistant.log is no longer available and it have been replaced by a file neviweb_log.txt in your config directory. It contain only logging about this custom_component. New logger create an empty file at startup and do a log rotation each time le file reach 2 meg in size.
+
+To have a maximum of information to help you, please provide a snippet of your `neviweb_log.txt` file. I've added some debug log messages that could help diagnose the problem.
 
 Add thoses lines to your `configuration.yaml` file
    ```yaml
