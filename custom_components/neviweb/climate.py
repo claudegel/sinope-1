@@ -306,7 +306,7 @@ async def async_setup_platform(
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
             entities.append(NeviwebThermostat(data, device_info, device_name, device_sku))
-            
+
     async_add_entities(entities, True)
 
     def set_second_display_service(service):
@@ -926,7 +926,7 @@ class NeviwebThermostat(ClimateEntity):
     def current_temperature(self) -> float:
         """Return the current temperature."""
         return self._cur_temp
-    
+
     @property
     def target_temperature(self) -> float:
         """Return the temperature we try to reach."""
