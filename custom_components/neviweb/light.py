@@ -142,7 +142,7 @@ async def async_setup_platform(
 ) -> None:
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
-    
+
     entities = []
     for device_info in data.neviweb_client.gateway_data:
         if "signature" in device_info and \
@@ -162,7 +162,7 @@ async def async_setup_platform(
                 else "light", device_info["name"])
             device_sku = device_info["sku"]
             entities.append(NeviwebLight(data, device_info, device_name, device_sku))
-            
+
     async_add_entities(entities, True)
 
     def set_light_keypad_lock_service(service):
@@ -288,7 +288,7 @@ class NeviwebLight(LightEntity):
         self._is_dimmable = device_info["signature"]["type"] in \
             DEVICE_TYPE_DIMMER
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
-        
+
     def update(self):
         """Get the latest data from neviweb and update the state."""
         start = time.time()
@@ -424,7 +424,7 @@ class NeviwebLight(LightEntity):
         """Turn the light off."""
         self._client.set_brightness(self._id, 0)
         self._brightness_pct = 0
- 
+
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, «locked» = locked, «unlocked» = unlocked"""
         lock = value["lock"]
