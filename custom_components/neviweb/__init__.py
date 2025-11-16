@@ -1,4 +1,5 @@
 import logging
+import os
 import requests
 import json
 from datetime import timedelta
@@ -44,10 +45,29 @@ from .const import (
     ATTR_TIMER,
     ATTR_TEMP,
     ATTR_WATTAGE_OVERRIDE,
+    STARTUP_MESSAGE,
+    VERSION,
 )
+from .helpers import setup_logger
 
-#REQUIREMENTS = ['PY_Sinope==0.1.5']
-VERSION = '2.2.6'
+DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
+DEFAULT_LOG_BACKUP_COUNT = 3
+DEFAULT_LOG_RESET_ON_START = True
+LOGGER_NAME = "custom_components.neviweb"
+
+LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../neviweb_log.txt"))
+
+existing_logger = logging.getLogger(LOGGER_NAME)
+level_name = logging.getLevelName(existing_logger.level)
+
+setup_logger(
+    name=LOGGER_NAME,
+    log_path=LOG_PATH,
+    level=level_name,
+    max_bytes=DEFAULT_LOG_MAX_BYTES,
+    backup_count=DEFAULT_LOG_BACKUP_COUNT,
+    reset_on_start=DEFAULT_LOG_RESET_ON_START
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,6 +96,8 @@ CONFIG_SCHEMA = vol.Schema({
 
 def setup(hass, hass_config):
     """Set up neviweb."""
+    _LOGGER.info(STARTUP_MESSAGE)
+
     data = NeviwebData(hass_config[DOMAIN])
     hass.data[DOMAIN] = data
 
