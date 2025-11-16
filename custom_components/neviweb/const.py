@@ -12,14 +12,14 @@ NAME = f"{data['name']}"
 DOMAIN = f"{data['domain']}"
 VERSION = f"{data['version']}"
 ISSUE_URL = f"{data['issue_tracker']}"
-REQUIRE = f"{data['homeassistant']}"
+REQUIRE = "2025.1.1"
 DOC_URL = f"{data['documentation']}"
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
 {NAME} ({DOMAIN})
 Version: {VERSION}
-Requirement: Home Assistant {REQUIRE}
+Requirement: Home Assistant minimum version {REQUIRE}
 This is a custom integration!
 If you have any issues with this you need to open an issue here: {ISSUE_URL}
 Documentation: {DOC_URL}
