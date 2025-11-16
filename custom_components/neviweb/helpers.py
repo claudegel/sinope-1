@@ -1,4 +1,4 @@
-"""Helpers for debugging and logger setup in neviweb130"""
+"""Helpers for debugging and logger setup in neviweb"""
 
 import aiofiles
 import json
@@ -7,8 +7,6 @@ import os
 import shutil
 
 from logging.handlers import RotatingFileHandler
-
-#DEBUG_FILE_PATH = "neviweb130_debug.txt"  # in /config
 
 # ─────────────────────────────────────────────
 # SECTION LOGGER SETUP
@@ -92,7 +90,7 @@ def update_logger_config(name: str, log_path: str, level: str, max_bytes: int, b
     logger.debug("Logger config updated to level %s", level.upper())
 
 
-def expose_log_file(hass, log_path: str, public_name: str = "neviweb130.log", expire_after: int = 1800) -> str | None:
+def expose_log_file(hass, log_path: str, public_name: str = "neviweb.log", expire_after: int = 1800) -> str | None:
     """Copy log file to /config/www for browser download with forced filename."""
     www_dir = hass.config.path("www")
     os.makedirs(www_dir, exist_ok=True)
