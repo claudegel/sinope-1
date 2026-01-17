@@ -111,8 +111,11 @@ async def async_setup_platform(
     discovery_info=None,
 ) -> None:
     """Set up the Neviweb switch."""
-    data = hass.data[DOMAIN]
-    
+    data = hass.data[DOMAIN]["data"]
+
+    # Wait for async migration to be done
+    await data.migration_done.wait()
+
     entities = []
     for device_info in data.neviweb_client.gateway_data:
         if "signature" in device_info and \
@@ -211,7 +214,7 @@ class NeviwebSwitch(SwitchEntity):
         self._name = name
         self._sku = sku
         self._client = data.neviweb_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._wattage = 0
         self._brightness = 0
         self._operation_mode = 1
@@ -332,7 +335,7 @@ class NeviwebSwitch(SwitchEntity):
                 'hourly_kwh': self._hour_energy_kwh,
                 'daily_kwh': self._today_energy_kwh,
                 'sku': self._sku,
-                'id': str(self._id)}
+                'id': self._id}
 
     @property
     def operation_mode(self):
