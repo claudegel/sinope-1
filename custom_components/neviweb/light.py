@@ -141,7 +141,10 @@ async def async_setup_platform(
     discovery_info = None,
 ) -> None:
     """Set up the neviweb light."""
-    data = hass.data[DOMAIN]
+    data = hass.data[DOMAIN]["data"]
+
+    # Wait for async migration to be done
+    await data.migration_done.wait()
 
     entities = []
     for device_info in data.neviweb_client.gateway_data:
@@ -271,7 +274,7 @@ class NeviwebLight(LightEntity):
         self._name = name
         self._sku = sku
         self._client = data.neviweb_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._wattage_override = 0
         self._today_energy_kwh = None
         self._hour_energy_kwh = None
@@ -396,7 +399,7 @@ class NeviwebLight(LightEntity):
                      'led_on': self._led_on,
                      'led_off': self._led_off,
                      'sku': self._sku,
-                     'id': str(self._id)})
+                     'id': self._id})
         return data
 
     @property
