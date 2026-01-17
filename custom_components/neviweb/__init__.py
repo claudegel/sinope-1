@@ -1,21 +1,30 @@
+"""Sinopé GT125 Miwi devices support."""
+
+from __future__ import annotations
+
+import asyncio
 import logging
 import os
-import requests
 import json
 from datetime import timedelta
+from typing import Any
 
+import requests
 import voluptuous as vol
 
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import IntegrationError
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers import discovery
+from homeassistant.helpers import discovery, entity_registry
 from homeassistant.const import (
     CONF_USERNAME,
     CONF_EMAIL,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
 )
+from requests.cookies import RequestsCookieJar
 
-from homeassistant.util import Throttle
 from .const import (
     DOMAIN,
     CONF_NETWORK,
@@ -48,7 +57,7 @@ from .const import (
     STARTUP_MESSAGE,
     VERSION,
 )
-from .helpers import setup_logger
+from .helpers import increment_request_counter, init_request_counter, setup_logger
 
 DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
 DEFAULT_LOG_BACKUP_COUNT = 3
@@ -94,12 +103,39 @@ CONFIG_SCHEMA = vol.Schema({
     extra=vol.ALLOW_EXTRA,
 )
 
-def setup(hass, hass_config):
+
+@callback
+def migrate_entity_unique_id(hass: HomeAssistant):
+    registry = entity_registry.async_get(hass)
+    for entity in list(registry.entities.values()):
+        if entity.platform == DOMAIN and isinstance(entity.unique_id, int):
+            registry.async_update_entity(entity.entity_id, new_unique_id=str(entity.unique_id))
+            _LOGGER.debug(f"Migrated unique_id from int to str for {entity.entity_id}")
+
+    # All platforms will wait for this asynchronously, before loading anything.
+    hass.data[DOMAIN]["data"].migration_done.set()
+
+
+def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     """Set up neviweb."""
     _LOGGER.info(STARTUP_MESSAGE)
 
-    data = NeviwebData(hass_config[DOMAIN])
-    hass.data[DOMAIN] = data
+    hass.data.setdefault(DOMAIN, {})
+
+    # Initialise request counter
+    init_request_counter(hass)
+
+    try:
+        data = NeviwebData(hass, hass_config[DOMAIN])
+        hass.data[DOMAIN]["data"] = data
+    except IntegrationError as e:
+        # Temporary workaround for sync setup: Avoid verbose traceback in logs. Once async_setup_entry is used,
+        # we can remove the try-except as HomeAssistant will correctly handle the raised exception
+        _LOGGER.error("Neviweb initialization failed: %s", e)
+        return False
+
+    # Migrate entity unique_ids from int -> str.
+    hass.add_job(migrate_entity_unique_id, hass)
 
     global SCAN_INTERVAL 
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
@@ -115,14 +151,16 @@ def setup(hass, hass_config):
 class NeviwebData:
     """Get the latest data and update the states."""
 
-    def __init__(self, config):
+    def __init__(self, hass, config):
         """Init the neviweb data object."""
         # from pyneviweb import NeviwebClient
         username = config.get(CONF_USERNAME)
         password = config.get(CONF_PASSWORD)
         network = config.get(CONF_NETWORK)
         network2 = config.get(CONF_NETWORK2)
-        self.neviweb_client = NeviwebClient(username, password, network, network2)
+        self.neviweb_client = NeviwebClient(hass, username, password, network, network2)
+
+        self.migration_done = asyncio.Event()
 
 # According to HA: 
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
@@ -137,8 +175,9 @@ class PyNeviwebError(Exception):
 
 class NeviwebClient(object):
 
-    def __init__(self, email, password, network, network2, timeout=REQUESTS_TIMEOUT):
+    def __init__(self, hass, email, password, network, network2, timeout=REQUESTS_TIMEOUT):
         """Initialize the client object."""
+        self.hass = hass
         self._email = email
         self._password = password
         self._network_name = network
@@ -149,7 +188,7 @@ class NeviwebClient(object):
         self.gateway_data = {}
         self.gateway_data2 = {}
         self._headers = None
-        self._cookies = None
+        self._cookies: RequestsCookieJar | None = None
         self._timeout = timeout
         self.user = None
 
@@ -165,8 +204,22 @@ class NeviwebClient(object):
         self.__get_network()
         self.__get_gateway_data()
 
+    def notify_ha(self, msg: str, title: str = "Neviweb integration " + VERSION):
+        """Notify user via HA web frontend."""
+        self.hass.services.call(
+            PN_DOMAIN,
+            "create",
+            service_data={
+                "title": title,
+                "message": msg,
+            },
+            blocking=False,
+        )
+        return True
+
     def __post_login_page(self):
         """Login to Neviweb."""
+        increment_request_counter(self.hass)
         data = {"username": self._email, "password": self._password, 
             "interface": "neviweb", "stayConnected": 1}
         try:
@@ -198,6 +251,7 @@ class NeviwebClient(object):
 
     def __get_network(self):
         """Get gateway id associated to the desired network."""
+        increment_request_counter(self.hass)
         # Http request
         try:
             raw_res = requests.get(LOCATIONS_URL + self._account, headers=self._headers, 
@@ -211,7 +265,7 @@ class NeviwebClient(object):
                 if len(networks) > 1:
                     self._gateway_id2 = networks[1]["id"]
                     self._network_name2 = networks[1]["name"]
-                
+
             else:
                 for network in networks:
                     if network["name"] == self._network_name:
@@ -241,7 +295,7 @@ class NeviwebClient(object):
                         else:
                             _LOGGER.debug("Your network name %s do not correspond to discovered network %s, skipping this one...",
                                 self._network_name2, network["name"])
-             
+
         except OSError:
             raise PyNeviwebError("Cannot get networks...")
         # Update cookies
@@ -251,6 +305,15 @@ class NeviwebClient(object):
 
     def __get_gateway_data(self):
         """Get gateway data."""
+        increment_request_counter(self.hass)
+        # Check if gateway_id was set
+        if self._gateway_id is None and self._gateway_id2 is None:
+            _LOGGER.warning("No gateway defined, check your config for networks names...")
+            self.notify_ha(
+                "All Gateway ID are None. Network selection failed. "
+                + "Check that your configuration network names match one of the networks in your Neviweb account. "
+                + "Available networks were logged during network selection. Check your log"
+            )
         # Http request
         try:
             raw_res = requests.get(GATEWAY_DEVICE_URL + str(self._gateway_id),
@@ -290,6 +353,7 @@ class NeviwebClient(object):
 
     def get_device_attributes(self, device_id, attributes):
         """Get device attributes."""
+        increment_request_counter(self.hass)
         # Prepare return
         data = {}
         # Http request
@@ -314,6 +378,7 @@ class NeviwebClient(object):
 
     def get_device_status(self, device_id):
         """Get device status for the GT125."""
+        increment_request_counter(self.hass)
         # Prepare return
         data = {}
         # Http request
@@ -339,6 +404,7 @@ class NeviwebClient(object):
 
     def get_neviweb_status(self, location):
         """Get neviweb occupancyMode status."""
+        increment_request_counter(self.hass)
         # Prepare return
         data = {}
         # Http request
@@ -361,6 +427,7 @@ class NeviwebClient(object):
 
     def get_device_daily_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 30 days."""
+        increment_request_counter(self.hass)
         # Prepare return
         data = {}
         # Http request
@@ -383,6 +450,7 @@ class NeviwebClient(object):
 
     def get_device_hourly_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 24 hours."""
+        increment_request_counter(self.hass)
         # Prepare return
         data = {}
         # Http request
@@ -541,6 +609,8 @@ class NeviwebClient(object):
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
+        """Set devices attributes."""
+        increment_request_counter(self.hass)
         result = 1
         while result < 4:
             try:
@@ -565,6 +635,7 @@ class NeviwebClient(object):
 
     def post_neviweb_status(self, device_id, location, mode):
         """Send post requests to Neviweb for global occupancy mode"""
+        increment_request_counter(self.hass)
         data = {ATTR_MODE: mode}
         try:
             resp = requests.post(NEVIWEB_LOCATION + location + "/mode",
