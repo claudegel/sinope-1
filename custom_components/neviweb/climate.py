@@ -53,6 +53,7 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
+    ATTR_ACTIVE,
     ATTR_ALARM,
     ATTR_ALARM_1,
     ATTR_AUX_CONFIG,
@@ -97,6 +98,7 @@ from .const import (
     MODE_FROST_PROTEC,
     MODE_MANUAL,
     MODE_OFF,
+    SERVICE_SET_ACTIVATION,
     SERVICE_SET_AIR_FLOOR_MODE,
     SERVICE_SET_AUX_CYCLE_LENGTH,
     SERVICE_SET_BACKLIGHT,
@@ -176,6 +178,13 @@ IMPLEMENTED_LOW_VOLTAGE = [21]
 IMPLEMENTED_THERMOSTAT = [10]
 IMPLEMENTED_FLOOR_THERMOSTAT = [20]
 IMPLEMENTED_DEVICE_TYPES = IMPLEMENTED_THERMOSTAT + IMPLEMENTED_LOW_VOLTAGE + IMPLEMENTED_FLOOR_THERMOSTAT
+
+SET_ACTIVATION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ACTIVE): vol.In([True, False]),
+    }
+)
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
@@ -311,6 +320,20 @@ async def async_setup_platform(
             entities.append(NeviwebThermostat(data, device_info, device_name, device_sku))
 
     async_add_entities(entities, True)
+
+    def set_activation_service(service):
+        """Activate or deactivate Neviweb polling for missing device."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "active": service.data[ATTR_ACTIVE],
+                }
+                thermostat.set_activation(value)
+                thermostat.schedule_update_ha_state(True)
+                break
 
     def set_second_display_service(service):
         """Set to outside or setpoint temperature display"""
@@ -459,6 +482,13 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
+        SERVICE_SET_ACTIVATION,
+        set_activation_service,
+        schema=SET_ACTIVATION_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
         set_second_display_service,
         schema=SET_SECOND_DISPLAY_SCHEMA,
@@ -573,6 +603,7 @@ class NeviwebThermostat(ClimateEntity):
         self._client = data.neviweb_client
         self._id = str(device_info["id"])
         self._model = device_info["signature"]["model"]
+        self._active = True
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
@@ -627,173 +658,175 @@ class NeviwebThermostat(ClimateEntity):
 
     def update(self):
         """Get the latest data from Neviweb and update the state."""
-        if not self._is_low_voltage and not self._is_floor:
-            ECO_ATTRIBUTE = [ATTR_SHED_STATUS, ATTR_BACKLIGHT]
-        else:
-            ECO_ATTRIBUTE = []
-        if self._is_floor:
-            FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
+        if self._active:
+            if not self._is_low_voltage and not self._is_floor:
+                ECO_ATTRIBUTE = [ATTR_SHED_STATUS, ATTR_BACKLIGHT]
+            else:
+                ECO_ATTRIBUTE = []
+            if self._is_floor:
+                FLOOR_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
                             ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_ALARM_1, ATTR_AUX_OUTPUT_STAGE]
-        else:
-            FLOOR_ATTRIBUTE = []
-        if self._is_low_voltage:
-            LOW_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
+            else:
+                FLOOR_ATTRIBUTE = []
+            if self._is_low_voltage:
+                LOW_ATTRIBUTE = [ATTR_BACKLIGHT_MODE, ATTR_FLOOR_MODE, ATTR_AUX_CONFIG, ATTR_AUX_WATTAGE_OVERRIDE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_AIR_LIMIT, \
                             ATTR_FLOOR_SETPOINT_MAX, ATTR_FLOOR_SETPOINT_MIN, ATTR_FLOOR_SETPOINT, ATTR_FLOOR_TEMP, ATTR_FLOOR_SENSOR_TYPE, ATTR_CYCLE_LENGTH, \
                             ATTR_AUX_CYCLE_LENGTH, ATTR_PUMP_PROTEC, ATTR_ALARM_1, ATTR_WATTAGE_OVERRIDE]
-        else:
-            LOW_ATTRIBUTE = [ATTR_WATTAGE]
-        start = time.time()
-        device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + ECO_ATTRIBUTE + FLOOR_ATTRIBUTE + LOW_ATTRIBUTE)
-        end = time.time()
-        elapsed = round(end - start, 3)
-        _LOGGER.debug("Updating %s (%s sec): %s",
-            self._name, elapsed, device_data)
-        _LOGGER.debug("Device data for %s: %s", self._name, device_data)
-        if "error" not in device_data:
-            if "errorCode" not in device_data:
-                self._cur_temp_before = self._cur_temp
-                self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
-                    device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
-                self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) if \
-                    device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
-                if ATTR_AWAY_SETPOINT in device_data:
-                    self._away_temp = float(device_data[ATTR_AWAY_SETPOINT])
-                else:
-                    _LOGGER.debug("Attribute roomSetpointAway is missing: %s", device_data)
-                self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                self._rssi = device_data[ATTR_RSSI]
-                self._operation_mode = device_data[ATTR_SETPOINT_MODE]
-                self._min_temp = float(device_data[ATTR_ROOM_SETPOINT_MIN])
-                self._max_temp = float(device_data[ATTR_ROOM_SETPOINT_MAX])
-                if ATTR_EARLY_START in device_data:
-                    self._early_start = device_data[ATTR_EARLY_START]
-                self._keypad = device_data[ATTR_KEYPAD]
-                if ATTR_DISPLAY_2 in device_data:
-                    self._display_2 = device_data[ATTR_DISPLAY_2]
-                self._temperature_format = device_data[ATTR_TEMP]
-                self._time_format = device_data[ATTR_TIME]
-                if ATTR_BACKLIGHT in device_data:
-                    self._backlight = device_data[ATTR_BACKLIGHT]
-#                else:
-#                    _LOGGER.debug("Attribute backlightIntensityIdle is missing: %s", device_data)
-                if not self._is_low_voltage:
-                    if ATTR_WATTAGE in device_data:
-                        self._wattage = device_data[ATTR_WATTAGE]["value"]
-                else:
-                    self._wattage = device_data[ATTR_WATTAGE_OVERRIDE]
-                if self._is_floor:
-                    if self._model == 735:
-                        if ATTR_FLOOR_MODE in device_data:
-                            self._floor_mode = device_data[ATTR_FLOOR_MODE]
+            else:
+                LOW_ATTRIBUTE = [ATTR_WATTAGE]
+            start = time.time()
+            device_data = self._client.get_device_attributes(self._id,
+                UPDATE_ATTRIBUTES + ECO_ATTRIBUTE + FLOOR_ATTRIBUTE + LOW_ATTRIBUTE)
+            end = time.time()
+            elapsed = round(end - start, 3)
+            _LOGGER.debug("Updating %s (%s sec): %s",
+                self._name, elapsed, device_data)
+            _LOGGER.debug("Device data for %s: %s", self._name, device_data)
+            if "error" not in device_data:
+                if "errorCode" not in device_data:
+                    self._cur_temp_before = self._cur_temp
+                    self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
+                        device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
+                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) if \
+                        device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
+                    if ATTR_AWAY_SETPOINT in device_data:
+                        self._away_temp = float(device_data[ATTR_AWAY_SETPOINT])
+                    else:
+                        _LOGGER.debug("Attribute roomSetpointAway is missing: %s", device_data)
+                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    self._rssi = device_data[ATTR_RSSI]
+                    self._operation_mode = device_data[ATTR_SETPOINT_MODE]
+                    self._min_temp = float(device_data[ATTR_ROOM_SETPOINT_MIN])
+                    self._max_temp = float(device_data[ATTR_ROOM_SETPOINT_MAX])
+                    if ATTR_EARLY_START in device_data:
+                        self._early_start = device_data[ATTR_EARLY_START]
+                    self._keypad = device_data[ATTR_KEYPAD]
+                    if ATTR_DISPLAY_2 in device_data:
+                        self._display_2 = device_data[ATTR_DISPLAY_2]
+                    self._temperature_format = device_data[ATTR_TEMP]
+                    self._time_format = device_data[ATTR_TIME]
+                    if ATTR_BACKLIGHT in device_data:
+                        self._backlight = device_data[ATTR_BACKLIGHT]
+#                    else:
+#                        _LOGGER.debug("Attribute backlightIntensityIdle is missing: %s", device_data)
+                    if not self._is_low_voltage:
+                        if ATTR_WATTAGE in device_data:
+                            self._wattage = device_data[ATTR_WATTAGE]["value"]
+                    else:
+                        self._wattage = device_data[ATTR_WATTAGE_OVERRIDE]
+                    if self._is_floor:
+                        if self._model == 735:
+                            if ATTR_FLOOR_MODE in device_data:
+                                self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                            if ATTR_FLOOR_SETPOINT in device_data:
+                                self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
+                            if ATTR_FLOOR_TEMP in device_data:
+                                self._floor_temperature = device_data[ATTR_FLOOR_TEMP]["value"]
+                                self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
+                            if ATTR_AUX_CONFIG in device_data:
+                                self._em_heat = device_data[ATTR_AUX_CONFIG]
+                            if ATTR_AUX_WATTAGE_OVERRIDE in device_data:
+                                self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
+                            if ATTR_AUX_OUTPUT_STAGE in device_data:
+                                self._aux_output_stage = device_data[ATTR_AUX_OUTPUT_STAGE]
+                            if ATTR_FLOOR_AIR_LIMIT in device_data:
+                                self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                            if ATTR_FLOOR_MAX in device_data:
+                                self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                            if ATTR_FLOOR_MIN in device_data:
+                                self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                            if ATTR_FLOOR_SETPOINT_MAX in device_data:
+                                self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
+                            if ATTR_FLOOR_SETPOINT_MIN in device_data:
+                                self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
+                            if ATTR_FLOOR_SENSOR_TYPE in device_data:
+                                self._sensor_type = device_data[ATTR_FLOOR_SENSOR_TYPE]
+                            if ATTR_BACKLIGHT_MODE in device_data:
+                                self._backlight = device_data[ATTR_BACKLIGHT_MODE]
+#                            else:
+#                                _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
+                    if self._is_low_voltage:
+                        self._floor_mode = device_data[ATTR_FLOOR_MODE]
                         if ATTR_FLOOR_SETPOINT in device_data:
                             self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
+                        else:
+                            self._floor_setpoint = None
                         if ATTR_FLOOR_TEMP in device_data:
                             self._floor_temperature = device_data[ATTR_FLOOR_TEMP]["value"]
                             self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
-                        if ATTR_AUX_CONFIG in device_data:
-                            self._em_heat = device_data[ATTR_AUX_CONFIG]
-                        if ATTR_AUX_WATTAGE_OVERRIDE in device_data:
-                            self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
-                        if ATTR_AUX_OUTPUT_STAGE in device_data:
-                            self._aux_output_stage = device_data[ATTR_AUX_OUTPUT_STAGE]
-                        if ATTR_FLOOR_AIR_LIMIT in device_data:
+                        else:
+                            self._floor_temperature = None
+                        self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
+                        self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
+                        self._em_heat = device_data[ATTR_AUX_CONFIG]
+                        self._aux_cycle_config = device_data[ATTR_AUX_CONFIG]
+                        self._aux_cycle_length = device_data[ATTR_AUX_CYCLE_LENGTH]
+                        self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
+                        if device_data[ATTR_FLOOR_AIR_LIMIT]["status"] =="off":
+                            self._floor_air_limit = None
+                        else:
                             self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
-                        if ATTR_FLOOR_MAX in device_data:
+                        if device_data[ATTR_FLOOR_MAX]["status"] != "off":
                             self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
-                        if ATTR_FLOOR_MIN in device_data:
                             self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
-                        if ATTR_FLOOR_SETPOINT_MAX in device_data:
-                            self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
-                        if ATTR_FLOOR_SETPOINT_MIN in device_data:
-                            self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
-                        if ATTR_FLOOR_SENSOR_TYPE in device_data:
-                            self._sensor_type = device_data[ATTR_FLOOR_SENSOR_TYPE]
+                        else:
+                            self._floor_max = None
+                            self._floor_min = None
+                        self._sensor_type = device_data[ATTR_FLOOR_SENSOR_TYPE]
+                        if ATTR_PUMP_PROTEC in device_data:
+                            self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
+                            self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
                         if ATTR_BACKLIGHT_MODE in device_data:
                             self._backlight = device_data[ATTR_BACKLIGHT_MODE]
 #                        else:
 #                            _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
-                if self._is_low_voltage:
-                    self._floor_mode = device_data[ATTR_FLOOR_MODE]
-                    if ATTR_FLOOR_SETPOINT in device_data:
-                        self._floor_setpoint = device_data[ATTR_FLOOR_SETPOINT]
-                    else:
-                        self._floor_setpoint = None
-                    if ATTR_FLOOR_TEMP in device_data:
-                        self._floor_temperature = device_data[ATTR_FLOOR_TEMP]["value"]
-                        self._floor_temp_error = device_data[ATTR_FLOOR_TEMP]["error"]
-                    else:
-                        self._floor_temperature = None
-                    self._floor_setpoint_max = device_data[ATTR_FLOOR_SETPOINT_MAX]
-                    self._floor_setpoint_min = device_data[ATTR_FLOOR_SETPOINT_MIN]
-                    self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
-                    self._em_heat = device_data[ATTR_AUX_CONFIG]
-                    self._aux_cycle_config = device_data[ATTR_AUX_CONFIG]
-                    self._aux_cycle_length = device_data[ATTR_AUX_CYCLE_LENGTH]
-                    self._aux_wattage = device_data[ATTR_AUX_WATTAGE_OVERRIDE]
-                    if device_data[ATTR_FLOOR_AIR_LIMIT]["status"] =="off":
-                        self._floor_air_limit = None
-                    else:    
-                        self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
-                    if device_data[ATTR_FLOOR_MAX]["status"] != "off":
-                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
-                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
-                    else:
-                        self._floor_max = None
-                        self._floor_min = None
-                    self._sensor_type = device_data[ATTR_FLOOR_SENSOR_TYPE]
-                    if ATTR_PUMP_PROTEC in device_data:
-                        self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
-                        self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
-                    if ATTR_BACKLIGHT_MODE in device_data:
-                        self._backlight = device_data[ATTR_BACKLIGHT_MODE]
-#                    else:
-#                        _LOGGER.debug("Attribute backlightAdaptive is missing: %s", device_data)
-                if ATTR_ALARM in device_data:
-                    self._alarm_0_type = device_data[ATTR_ALARM]["type"]
-                    self._alarm_0_severity = device_data[ATTR_ALARM]["severity"]
-                    self._alarm_0_duration = device_data[ATTR_ALARM]["duration"]
-                if ATTR_ALARM_1 in device_data:
-                    self._alarm_1_type = device_data[ATTR_ALARM_1]["type"]
-                    self._alarm_1_severity = device_data[ATTR_ALARM_1]["severity"]
-                    self._alarm_1_duration = device_data[ATTR_ALARM_1]["duration"]
-                if ATTR_SHED_STATUS in device_data:
-                    self._shed_stat_temp = device_data[ATTR_SHED_STATUS]["temperature"]
-                    self._shed_stat_power = device_data[ATTR_SHED_STATUS]["power"]
-                    self._shed_stat_optout = device_data[ATTR_SHED_STATUS]["optOut"]
-            else:
-                if device_data["errorCode"] == "ReadTimeout":
-                    _LOGGER.warning("Error in reading device %s: (%s), too slow to respond or busy.", self._name, device_data)
+                    if ATTR_ALARM in device_data:
+                        self._alarm_0_type = device_data[ATTR_ALARM]["type"]
+                        self._alarm_0_severity = device_data[ATTR_ALARM]["severity"]
+                        self._alarm_0_duration = device_data[ATTR_ALARM]["duration"]
+                    if ATTR_ALARM_1 in device_data:
+                        self._alarm_1_type = device_data[ATTR_ALARM_1]["type"]
+                        self._alarm_1_severity = device_data[ATTR_ALARM_1]["severity"]
+                        self._alarm_1_duration = device_data[ATTR_ALARM_1]["duration"]
+                    if ATTR_SHED_STATUS in device_data:
+                        self._shed_stat_temp = device_data[ATTR_SHED_STATUS]["temperature"]
+                        self._shed_stat_power = device_data[ATTR_SHED_STATUS]["power"]
+                        self._shed_stat_optout = device_data[ATTR_SHED_STATUS]["optOut"]
                 else:
-                    _LOGGER.warning("Unknown errorCode, device: %s, error: %s", self._name, device_data)
-        else:
-            if device_data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.warning("Session expired... reconnecting...")
-                self._client.reconnect()
-            elif device_data["error"]["code"] == "DVCCOMMTO":  
-                _LOGGER.warning("Cannot update %s: %s. Device is busy or does not respond quickly enough.", self._name, device_data)
-            elif device_data["error"]["code"] == "SVCINVREQ":
-                _LOGGER.warning("Invalid or malformed request to Neviweb, %s:",  device_data)
-            elif device_data["error"]["code"] == "DVCUNVLB":
-                _LOGGER.warning("Device %s unavailable, Neviweb maintnance update, %s:", self._name, device_data)
-            elif device_data["error"]["code"] == "SVCERR":
-                _LOGGER.warning("Device %s statistics unavailables, %s:", self._name, device_data)
+                    if device_data["errorCode"] == "ReadTimeout":
+                        _LOGGER.warning("Error in reading device %s: (%s), too slow to respond or busy.", self._name, device_data)
+                    else:
+                        _LOGGER.warning("Unknown errorCode, device: %s, error: %s", self._name, device_data)
             else:
-                _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
-        if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
-            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-            if device_hourly_stats is not None:
-                self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
-            else:
-                _LOGGER.warning("Got None for device_hourly_stats")
-            device_daily_stats = self._client.get_device_daily_stats(self._id)
-            if device_daily_stats is not None:
-                self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
-            else:
-                _LOGGER.warning("Got None for device_daily_stats")
-            self._energy_stat_time = time.time()
-        if self._energy_stat_time == 0:
-            self._energy_stat_time = start
+                if device_data["error"]["code"] == "USRSESSEXP":
+                    _LOGGER.warning("Session expired... reconnecting...")
+                    self._client.reconnect()
+                elif device_data["error"]["code"] == "DVCCOMMTO":  
+                    _LOGGER.warning("Cannot update %s: %s. Device is busy or does not respond quickly enough.", self._name, device_data)
+                elif device_data["error"]["code"] == "SVCINVREQ":
+                    _LOGGER.warning("Invalid or malformed request to Neviweb, %s:",  device_data)
+                elif device_data["error"]["code"] == "DVCUNVLB":
+                    _LOGGER.warning("Device %s unavailable, Neviweb maintnance update, %s:", self._name, device_data)
+                elif device_data["error"]["code"] == "SVCERR":
+                    _LOGGER.warning("Device %s statistics unavailables, %s:", self._name, device_data)
+                else:
+                    _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
+
+            if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
+                device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+                if device_hourly_stats is not None:
+                    self._hour_energy_kwh = round(device_hourly_stats[0] / 1000, 3)
+                else:
+                    _LOGGER.warning("Got None for device_hourly_stats")
+                device_daily_stats = self._client.get_device_daily_stats(self._id)
+                if device_daily_stats is not None:
+                    self._today_energy_kwh = round(device_daily_stats[0] / 1000, 3)
+                else:
+                    _LOGGER.warning("Got None for device_daily_stats")
+                self._energy_stat_time = time.time()
+            if self._energy_stat_time == 0:
+                self._energy_stat_time = start
 
     @property
     def unique_id(self):
@@ -879,6 +912,7 @@ class NeviwebThermostat(ClimateEntity):
                     'alarm1_duration': self._alarm_1_duration,
                     'sku': self._sku,
                     'model': self._model,
+                    'activation': self._active,
                     'id': self._id})
         return data
 
@@ -988,6 +1022,10 @@ class NeviwebThermostat(ClimateEntity):
     def swing_horizontal_modes(self) -> list[str] | None:
         """Return available horizontal swing modes"""
         return None
+
+    def set_activation(self, value):
+        """Activate or deactivate neviweb polling for a missing device."""
+        self._active = value["active"]
 
     def turn_on(self):
         """Turn the thermostat to HVACMode.heat on."""
