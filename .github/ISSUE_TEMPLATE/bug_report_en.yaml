@@ -55,10 +55,7 @@ body:
         - Light
         - Switch
         - Load Controller
-        - Valve
-        - Leak sensor
         - API / Neviweb account
-        - Update / Backup
         - Other
     validations:
       required: true
