@@ -72,7 +72,7 @@ directly via your GT125 gateway:
 - [Neviweb130](https://github.com/claudegel/sinope-130) (HACS: Sinope Neviweb130) custom component to manage your devices connected to
   your GT130 gateway via Neviweb portal.
 
-You need to install only one of them but both can be used at the same time on HA.
+You need to install only one of them but all three can be used at the same time on HA.
 
 ## Installation
 ### Neviweb custom component to manage your device via Neviweb portal:
