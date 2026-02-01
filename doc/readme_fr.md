@@ -1,6 +1,6 @@
 # Composants personnalisés Neviweb pour Home Assistant
 
-[🇫🇷 Version anglaise](../readme.md)
+[🇫🇷 Version anglaise](../README.md)
 
 > 💛 **Vous appréciez cette intégration ?**
 > Si vous souhaitez soutenir son développement, vous pouvez contribuer ici :
