@@ -1,24 +1,41 @@
-Update:
-
-To support [HACS](https://community.home-assistant.io/t/custom-component-hacs/121727), this repository has 
-been broken up into two.
-- sinope-gt125 for devices management via direct conection to the gt125 web gateway
-- sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
-
 # Home Assistant Neviweb Custom Components
+[🇫🇷 Version française](doc/readme_fr.md)
+> 💛 **Enjoying this integration?**  
+> If you'd like to support its ongoing development, you can contribute here:
+> [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/)
 
-Here is a custom components to suport [Neviweb](https://neviweb.com/) in [Home Assistant](http://www.home-assistant.io). 
+Custom components to suport [Neviweb](https://neviweb.com/) Miwi devices in [Home Assistant](http://www.home-assistant.io). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
 switches/dimmers and load controllers. It also supports some devices made by 
 [Ouellet](http://www.ouellet.com/en-ca/products/thermostats-and-controls/neviweb%C2%AE-wireless-communication-controls.aspx). 
 
-This custom component originally was able to load devices from one GT125 network connected to Neviweb. It as been 
-updated to be able to load devices from two GT125 network connected to Neviweb. This will give you possibility to 
+Neviweb (Sinope Neviweb in HACS) will manage Miwi devices connected to Neviweb portal via a GT125.
+It as been updated to be able to load devices from two GT125 network connected to Neviweb. This will give you possibility to 
 load devices from house and office or house and summer house at once. The two gateway should be GT125. Cannot be mixed 
-with GT130. Use Neviweb130 custom component for this one. 
+with GT130 or Wi-Fi devices. Use [Neviweb130](https://github.com/claudegel/sinope-130) custom component for this one.
+
+Report a problem or suggest an improvement: [Open an issue](https://github.com/claudegel/sinope-130/issues/new/choose)
+
+## Table of contents
+
+- [Supported devices](#supported-devices)
+- [Prerequisite](#prerequisite)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [GT125](#gateway-gt125)
+- [Request counter](#neviweb-daily-request-counter)
+- [Services / Actions](#custom-services)
+- [Debugging](#logging-for-debugging)
+- [Eco-Sinopé](#catch-eco-sinope-signal-for-peak-period)
+- [Energy statistic](#statistic-for-energy)
+- [Troubleshooting](#troubleshooting)
+- [Customization](#customization)
+- [Device hard reset](#device-hard-reset)
+- [Current limitation](#current-limitations)
+- [TO DO](#to-do)
 
 ## Supported Devices
-Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
+Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb as Miwi device.
 - Thermostats
   - Sinopé TH1120RF-3000 Line voltage thermostat
   - Sinopé TH1120RF-4000 Line voltage thermostat
@@ -49,22 +66,23 @@ to interact with them within Home Assistant. Please refer to the instructions ma
 
 There are three custom components giving you the choice to manage your devices via the neviweb portal or 
 directly via your GT125 gateway:
-- [Neviweb](https://github.com/claudegel/sinope-1) custom component to manage your devices via Neviweb portal.
-- [Sinope](https://github.com/claudegel/sinope-gt125) custom component to manage your devices directly via
+- [Neviweb](https://github.com/claudegel/sinope-1) (HACS: Sinope Neviweb), this custom component to manage your devices via Neviweb portal.
+- [Sinope](https://github.com/claudegel/sinope-gt125) (HACS: Sinope GT125) custom component to manage your devices directly via
   your GT125 web gateway.
-- [Neviweb130](https://github.com/claudegel/sinope-130) custom component to manage your devices connected to
+- [Neviweb130](https://github.com/claudegel/sinope-130) (HACS: Sinope Neviweb130) custom component to manage your devices connected to
   your GT130 gateway via Neviweb portal.
 
-You need to install only one of them but both can be used at the same time on HA.
+You need to install only one of them but all three can be used at the same time on HA.
 
-## Neviweb custom component to manage your device via Neviweb portal:
 ## Installation
+### Neviweb custom component to manage your device via Neviweb portal:
+
 There are two methods to install this custom component:
-- via HACS component:
+- **Via HACS component**:
   - This repository is compatible with the Home Assistant Community Store
     ([HACS](https://community.home-assistant.io/t/custom-component-hacs/121727)).
   - After installing HACS, install 'sinope-1' from the store, and use the configuration.yaml example below.
-- Manually via direct download:
+- **Manually via direct download**:
   - Download the zip file of this repository using the top right, green download button.
   - Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant
     `config` directory (where you can find your `configuration.yaml` file).
@@ -119,6 +137,10 @@ you can omit there names as during setup, the first two network found will be pi
 f you prefer to add networs names make sure that they are written «exactly» as in Neviweb. 
 (first letter capitalized or not).
 
+## Gateway GT125
+It is now possible to know if your GT125 is still online of offline with Neviweb via the gateway_status attribute. The 
+GT125 is detected as sensor.neviweb_sensor_gt125
+
 ## Neviweb daily request counter
 As Sinopé is becoming more picky about request number per day, fixed to 30000. If you reah that limit you will be 
 disconnected until midnight. This is very bad if you have many devices or doing development on neviweb. I've 
@@ -161,8 +183,13 @@ Those custom services can be accessed via development tool/services or can be us
 - neviweb.set_switch_eco_status, to set switch eco status on/off.
 - neviweb.set_em_heat, to turn on/off auxiliary/emergency heating.
 - neviweb.set_neviweb_status, to change Neviweb global home/away status.
- 
-## Catch Éco Sinopé signal for peak period
+
+## Logging for debugging
+As the file home-assistant.log is no longer available, we have added a new logger that write all logging data about neviweb
+to a file `neviweb_log.txt` in your config file. This file is overwritten each time Ha is restarted. The file is also rotated 
+each time it reach 2 meg in size. Log rotation have a total of 4 files.
+
+## Catch Eco Sinope signal for peak period
 
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch 
 when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler.
@@ -220,7 +247,7 @@ You can also post in one of those threads to get help:
 - https://community.home-assistant.io/t/sinope-line-voltage-thermostats/17157
 - https://community.home-assistant.io/t/adding-support-for-sinope-light-switch-and-dimmer/38835
 
-### Turning on Neviweb debug messages in `home-assistant.log` file
+### Turning on Neviweb debug messages in `neviweb_log.txt` file
 
 Add thoses lines to your `configuration.yaml` file
    ```yaml
@@ -281,19 +308,11 @@ If you need to hard reset your devices:
 ## Current Limitations
 - Home Assistant doesn't support operation mode selection for light and switch entities. So you won't see any dropdown list
   in the UI where you can switch between Auto and Manual mode. You can only see the current mode in the attributes.
-  TODO: register a new service to change operation_mode and another one to set away mode.
 
 - If you're looking for the away mode in the Lovelace 'thermostat' card, you need to click on the three dots button on the
   top right corner of the card. That will pop a window were you'll find the away mode switch at the bottom.
 
 ## TO DO
-- Document each available services for every platforms + available attributes.
 - Explore how to automatically setup sensors in HA that will report the states of a specific device attribute
   (i.e. the wattage of a switch device)
-
-## Contributing
-You see something wrong or something that could be improved? Don't hesitate to fork me and send me pull requests.
-
-## Buy me a coffee
-If you want to make donation as appreciation of my work, you can do so via PayPal. Thank you!
-[![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/)
+- register a new service to change operation_mode and another one to set away mode.

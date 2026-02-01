@@ -1,3 +1,13 @@
+set_activation:
+  description: Activate or deactivate devices which are no longer connected or are reconnected to prevent neviweb polling for unavailable device.
+  fields:
+    entity_id:
+      description: Name(s) of Neviweb device.
+      example: "switch.neviweb_switch_RM3250RF"
+    active:
+      description: Activate «True» or deactivate device «False».
+      example: False
+
 set_climate_keypad_lock:
   description: Lock or unlock climate device keypad.
   fields:
