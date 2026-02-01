@@ -12,9 +12,9 @@ switches/dimmers and load controllers. It also supports some devices made by
 Neviweb (Sinope Neviweb in HACS) will manage Miwi devices connected to Neviweb portal via a GT125.
 It as been updated to be able to load devices from two GT125 network connected to Neviweb. This will give you possibility to 
 load devices from house and office or house and summer house at once. The two gateway should be GT125. Cannot be mixed 
-with GT130 or Wi-Fi devices. Use [Neviweb130](https://github.com/claudegel/sinope-130) custom component for this one.
+with GT130 or Wi-Fi devices. Use [Neviweb](https://github.com/claudegel/sinope-1) custom component for this one.
 
-Report a problem or suggest an improvement: [Open an issue](https://github.com/claudegel/sinope-130/issues/new/choose)
+Report a problem or suggest an improvement: [Open an issue](https://github.com/claudegel/sinope-1/issues/new/choose)
 
 ## Table of contents
 
@@ -69,7 +69,7 @@ directly via your GT125 gateway:
 - [Neviweb](https://github.com/claudegel/sinope-1) (HACS: Sinope Neviweb), this custom component to manage your devices via Neviweb portal.
 - [Sinope](https://github.com/claudegel/sinope-gt125) (HACS: Sinope GT125) custom component to manage your devices directly via
   your GT125 web gateway.
-- [Neviweb130](https://github.com/claudegel/sinope-130) (HACS: Sinope Neviweb130) custom component to manage your devices connected to
+- [Neviweb](https://github.com/claudegel/sinope-1) (HACS: Sinope Neviweb) custom component to manage your devices connected to
   your GT130 gateway via Neviweb portal.
 
 You need to install only one of them but all three can be used at the same time on HA.
