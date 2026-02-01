@@ -15,7 +15,7 @@ Neviweb (Sinope Neviweb dans HACS) gère les appareils Miwi connectés au portai
 
 Ce composant_personnalisé a été mise à jour pour permettre la gestion des appareils provenant de deux réseaux GT125 connectés à Neviweb. Vous pouvez ainsi 
 gérer simultanément les appareils de votre domicile et de votre bureau, ou de votre résidence secondaire. Les deux passerelles doivent être des GT125. 
-Elles ne sont pas compatibles avec les GT130 ni les appareils Wi-Fi. Utilisez le composant personnalisé [Neviweb130](https://github.com/claudegel/sinope-130) 
+Elles ne sont pas compatibles avec les GT130 ni les appareils Wi-Fi. Utilisez le composant personnalisé [Neviweb](https://github.com/claudegel/sinope-1) 
 pour cette configuration.
 
 Signaler un problème ou suggérer une amélioration : [Ouvrir un ticket](https://github.com/claudegel/sinope-1/issues/new/choose)
@@ -73,7 +73,7 @@ Trois composants personnalisés vous permettent de gérer vos appareils via le p
 
 - [Neviweb](https://github.com/claudegel/sinope-1) (HACS : Sinope Neviweb), ce composant personnalisé permet de gérer vos appareils via le portail Neviweb.
 - [Sinope](https://github.com/claudegel/sinope-gt125) (HACS : Sinope GT125), composant personnalisé permettant de gérer vos appareils directement via votre passerelle web GT125.
-- [Neviweb130](https://github.com/claudegel/sinope-130) (HACS : Sinope Neviweb130), composant personnalisé permettant de gérer vos appareils Zigbee connectés à votre passerelle GT130 et Wi-Fi via le portail Neviweb.
+- [Neviweb](https://github.com/claudegel/sinope-1) (HACS : Sinope Neviweb), composant personnalisé permettant de gérer vos appareils Zigbee connectés à votre passerelle GT130 et Wi-Fi via le portail Neviweb.
 
 Il vous suffit d'en installer un seul, mais les trois peuvent être utilisés simultanément sur HA.
 
