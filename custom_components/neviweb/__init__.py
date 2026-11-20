@@ -209,7 +209,7 @@ class NeviwebClient:
         self.__get_gateway_data()
 
     def update(self):
-        """Getting gateway data from Neviweb."""
+        """Retrieve gateway data from Neviweb."""
         self.__get_gateway_data()
 
     def reconnect(self):
