@@ -12,8 +12,6 @@ import logging
 import voluptuous as vol
 import time
 
-import custom_components.neviweb as neviweb
-from . import SCAN_INTERVAL
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 
 from homeassistant.const import (
@@ -21,15 +19,8 @@ from homeassistant.const import (
     STATE_OK,
 )
 
-from homeassistant.helpers import (
-    config_validation as cv,
-    discovery,
-    service,
-    entity_platform,
-    entity_component,
-    entity_registry,
-    device_registry,
-)
+from homeassistant.core import ServiceCall
+from homeassistant.helpers import config_validation as cv
 
 from homeassistant.components.sensor import SensorDeviceClass
 
@@ -37,6 +28,7 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.entity import Entity
+from . import SCAN_INTERVAL as scan_interval
 from .const import (
     DOMAIN,
     ATTR_LOCAL_SYNC,
@@ -50,6 +42,7 @@ from .helpers import get_daily_request_count
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = "neviweb sensor"
+SCAN_INTERVAL = scan_interval
 
 UPDATE_ATTRIBUTES = [
     ATTR_LOCAL_SYNC,
@@ -106,7 +99,7 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_neviweb_status_service(service):
+    def set_neviweb_status_service(service: ServiceCall) -> None:
         """Set Neviweb global status, home or away."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -216,7 +209,7 @@ class NeviwebSensor(Entity):
 
     @property
     def is_on(self):
-        """Return current operation i.e. ON, OFF"""
+        """Return current operation i.e. ON, OFF."""
         return self._gateway_status is not None
 
     @property
@@ -236,7 +229,7 @@ class NeviwebSensor(Entity):
         return self._gateway_status
 
     def set_neviweb_status(self, value):
-        """Set Neviweb global mode away or home"""
+        """Set Neviweb global mode away or home."""
         mode = value["mode"]
         entity = value["id"]
         self._client.post_neviweb_status(entity, str(self._location), mode)
@@ -244,7 +237,7 @@ class NeviwebSensor(Entity):
 
 
 class NeviwebDailyRequestSensor(Entity):
-    """Sensor interne : nombre de requêtes Neviweb130 aujourd'hui."""
+    """Internal sensor : Number of daily requests to Neviweb."""
 
     def __init__(self, hass):
         self._hass = hass
@@ -254,22 +247,27 @@ class NeviwebDailyRequestSensor(Entity):
 
     @property
     def name(self):
+        """Return device name."""
         return self._attr_name
 
     @property
     def unique_id(self):
+        """Return device unique_id."""
         return self._attr_unique_id
 
     @property
     def state(self):
+        """Return total daily requests."""
         return get_daily_request_count(self._hass)
 
     @property
     def icon(self):
+        """Return device icon."""
         return "mdi:counter"
 
     @property
     def extra_state_attributes(self):
+        """Return device extra state attributes."""
         data = self._hass.data[DOMAIN]["request_data"]
         return {
             "date": data["date"],
