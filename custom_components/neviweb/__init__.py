@@ -182,7 +182,7 @@ class PyNeviwebError(Exception):
     pass
 
 
-class NeviwebClient(object):
+class NeviwebClient:
 
     def __init__(
         self, hass, email, password, network, network2, timeout=REQUESTS_TIMEOUT
