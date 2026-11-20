@@ -594,7 +594,7 @@ class NeviwebThermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
     _enable_turn_on_off_backwards_compatibility = False
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
 
     def __init__(self, data, device_info, name, sku):
         """Initialize."""
@@ -940,7 +940,7 @@ class NeviwebThermostat(ClimateEntity):
         return self._max_temp
 
     @property
-    def temperature_unit(self):
+    def native_temperature_unit(self):
         """Return the unit of measurement."""
         return UnitOfTemperature.CELSIUS
 
@@ -960,12 +960,12 @@ class NeviwebThermostat(ClimateEntity):
         return SUPPORTED_HVAC_MODES
 
     @property
-    def current_temperature(self) -> float:
+    def native_current_temperature(self) -> float:
         """Return the current temperature."""
         return self._cur_temp
 
     @property
-    def target_temperature(self) -> float:
+    def native_target_temperature(self) -> float:
         """Return the temperature we try to reach."""
         return self._target_temp
 
