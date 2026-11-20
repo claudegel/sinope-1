@@ -1,8 +1,9 @@
 """
 Support for Neviweb light switch/dimmer.
+
 type 102 = light switch SW2500RF, model 2120
 type 112 = light dimmer DM2500RF, model 2130
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 
@@ -24,16 +25,8 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
 )
 
-from homeassistant.helpers import (
-    config_validation as cv,
-    device_registry,
-    discovery,
-    entity_component,
-    entity_platform,
-    entity_registry,
-    service,
-)
-
+from homeassistant.core import ServiceCall
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
@@ -184,7 +177,7 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -198,8 +191,8 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
-    def set_light_keypad_lock_service(service):
-        """lock/unlock keypad device"""
+    def set_light_keypad_lock_service(service: ServiceCall) -> None:
+        """Lock/unlock keypad device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -209,8 +202,8 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
-    def set_light_timer_service(service):
-        """set timer for light device"""
+    def set_light_timer_service(service: ServiceCall) -> None:
+        """Set timer for light device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -220,8 +213,8 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
-    def set_wattage_service(service):
-        """set wattageOverride value for light device, 0-1800w for switch, 0-600w for dimmer"""
+    def set_wattage_service(service: ServiceCall) -> None:
+        """Set wattageOverride value for light device, 0-1800w for switch, 0-600w for dimmer."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -234,8 +227,8 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
-    def set_led_indicator_service(service):
-        """set led color and intensity for light indicator"""
+    def set_led_indicator_service(service: ServiceCall) -> None:
+        """Set led color and intensity for light indicator."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -252,8 +245,8 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
-    def set_light_away_mode_service(service):
-        """set light action in away mode"""
+    def set_light_away_mode_service(service: ServiceCall) -> None:
+        """Set light action in away mode."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -459,7 +452,7 @@ class NeviwebLight(LightEntity):
 
     @property
     def color_mode(self):
-        """Set ColorMode"""
+        """Set ColorMode."""
         if self._is_dimmable:
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
@@ -507,7 +500,7 @@ class NeviwebLight(LightEntity):
 
     @property
     def brightness(self):
-        """Return intensity of light"""
+        """Return intensity of light."""
         return brightness_from_percentage(self._brightness_pct)
 
     @property
@@ -535,7 +528,7 @@ class NeviwebLight(LightEntity):
         self._brightness_pct = 0
 
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, «locked» = locked, «unlocked» = unlocked"""
+        """Lock or unlock device's keypad, «locked» = locked, «unlocked» = unlocked."""
         lock = value["lock"]
         entity = value["id"]
         _LOGGER.debug("keypad.data.value = %s", value)
@@ -551,21 +544,21 @@ class NeviwebLight(LightEntity):
         self._timer = time
 
     def set_wattage(self, value):
-        """Set device wattage, 0-1600w light, 0-600w dimmer"""
+        """Set device wattage, 0-1600w light, 0-600w dimmer."""
         watt = value["watt"]
         entity = value["id"]
         self._client.set_wattage(entity, watt)
         self._wattage_override = watt
 
     def set_away_mode(self, value):
-        """Set device away mode, On, Off, Auto, None or random"""
+        """Set device away mode, On, Off, Auto, None or random."""
         away = value["away"]
         entity = value["id"]
         self._client.set_mode_away(entity, away)
         self._away_mode = away
 
     def set_led_indicator(self, value):
-        """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100"""
+        """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100."""
         state = value["state"]
         entity = value["id"]
         intensity = value["intensity"]
@@ -596,4 +589,5 @@ class NeviwebLight(LightEntity):
 
     @property
     def operation_mode(self):
+        """Define operation mode."""
         return self._operation_mode
