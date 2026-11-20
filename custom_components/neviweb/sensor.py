@@ -2,31 +2,26 @@
 Support for Neviweb sensor.
 
 model 125, GT125 gateway
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 
+import asyncio
 import datetime
 import logging
 
 import voluptuous as vol
 import time
 
-from homeassistant.components.sensor import PLATFORM_SCHEMA
-
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    STATE_OK,
 )
 
 from homeassistant.core import ServiceCall
 from homeassistant.helpers import config_validation as cv
 
-from homeassistant.components.sensor import SensorDeviceClass
-
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
-from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.entity import Entity
 from . import SCAN_INTERVAL as scan_interval
 from .const import (
@@ -240,6 +235,7 @@ class NeviwebDailyRequestSensor(Entity):
     """Internal sensor : Number of daily requests to Neviweb."""
 
     def __init__(self, hass):
+        """Initialize."""
         self._hass = hass
         self._attr_name = "Neviweb Daily Requests"
         self._attr_unique_id = f"{DOMAIN}_daily_requests"
