@@ -1,5 +1,6 @@
 """
 Support for Neviweb thermostat.
+
 type 10 = thermostat TH1120RF 3000W and 4000W, model 1120, 1122
 type 10 = thermostat TH1121RF 3000W and 4000W, (Public place) model 1121, 1123
 type 20 = thermostat TH1300RF 3600W floor, model 735
@@ -9,7 +10,7 @@ type 10 = thermostat OTH2750-GT Ouellet,
 type 20 = thermostat OTH3600-GA-GT Ouellet floor, model 735
 type 10 = thermostat OTH4000-GT Ouellet,
 type 20 = thermostat INSTINCT Connect, Flextherm, FLP45
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 
@@ -18,8 +19,6 @@ import logging
 import voluptuous as vol
 import time
 
-import custom_components.neviweb as neviweb
-from . import SCAN_INTERVAL
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
@@ -38,19 +37,11 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 
-from homeassistant.helpers import (
-    config_validation as cv,
-    device_registry,
-    discovery,
-    entity_component,
-    entity_platform,
-    entity_registry,
-    service,
-)
+from homeassistant.core import ServiceCall
+from homeassistant.helpers import config_validation as cv
 
 from homeassistant.components.sensor import SensorDeviceClass
 
-from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
     ATTR_ACTIVE,
@@ -94,7 +85,6 @@ from .const import (
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_AWAY,
-    MODE_EM_HEAT,
     MODE_FROST_PROTEC,
     MODE_MANUAL,
     MODE_OFF,
@@ -324,7 +314,7 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -338,8 +328,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_second_display_service(service):
-        """Set to outside or setpoint temperature display"""
+    def set_second_display_service(service: ServiceCall) -> None:
+        """Set to outside or setpoint temperature display."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -352,8 +342,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_backlight_service(service):
-        """Set backlight action off on idle or always on"""
+    def set_backlight_service(service: ServiceCall) -> None:
+        """Set backlight action off on idle or always on."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -366,8 +356,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_climate_keypad_lock_service(service):
-        """lock/unlock keypad device"""
+    def set_climate_keypad_lock_service(service: ServiceCall) -> None:
+        """Lock/unlock keypad device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -377,8 +367,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_early_start_service(service):
-        """Set early start heating of device"""
+    def set_early_start_service(service: ServiceCall) -> None:
+        """Set early start heating of device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -391,8 +381,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_time_format_service(service):
-        """Set time format 12h or 24h"""
+    def set_time_format_service(service: ServiceCall) -> None:
+        """Set time format 12h or 24h."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -402,8 +392,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_temperature_format_service(service):
-        """Set temperature format, celsius or fahrenheit of device"""
+    def set_temperature_format_service(service: ServiceCall) -> None:
+        """Set temperature format, celsius or fahrenheit of device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -413,8 +403,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_setpoint_max_service(service):
-        """set maximum setpoint for device"""
+    def set_setpoint_max_service(service: ServiceCall) -> None:
+        """Set maximum setpoint for device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -427,8 +417,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_setpoint_min_service(service):
-        """set minimum setpoint for device"""
+    def set_setpoint_min_service(service: ServiceCall) -> None:
+        """Set minimum setpoint for device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -441,8 +431,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_air_floor_mode_service(service):
-        """set ambiant or floor sensor control"""
+    def set_air_floor_mode_service(service: ServiceCall) -> None:
+        """Set ambiant or floor sensor control."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -455,8 +445,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_cycle_length_service(service):
-        """set main cycle duration for low voltage thermostats"""
+    def set_cycle_length_service(service: ServiceCall) -> None:
+        """Set main cycle duration for low voltage thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -466,8 +456,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_aux_cycle_length_service(service):
-        """set auxiliary cycle duration for low voltage thermostats"""
+    def set_aux_cycle_length_service(service: ServiceCall) -> None:
+        """Set auxiliary cycle duration for low voltage thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -477,8 +467,8 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_eco_status_service(service):
-        """Set eco status on/off"""
+    def set_eco_status_service(service: ServiceCall) -> None:
+        """Set eco status on/off."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -491,7 +481,7 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_em_heat_service(service):
+    def set_em_heat_service(service: ServiceCall) -> None:
         """Set emergency heat on/off for thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for thermostat in entities:
@@ -603,6 +593,7 @@ async def async_setup_platform(
 
 
 def neviweb_to_ha(value):
+    """Convert Neviweb period to HA period."""
     keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
     if keys:
         return keys[0]
@@ -610,6 +601,7 @@ def neviweb_to_ha(value):
 
 
 def temp_format_to_ha(value):
+    """Convert Neviweb temp format to HA format."""
     if value == "celsius":
         return UnitOfTemperature.CELSIUS
     else:
@@ -746,7 +738,7 @@ class NeviwebThermostat(ClimateEntity):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = (
@@ -1083,7 +1075,7 @@ class NeviwebThermostat(ClimateEntity):
 
     @property
     def hvac_mode(self):
-        """Return current operation"""
+        """Return current operation."""
         if self._operation_mode == MODE_OFF:
             return HVACMode.OFF
         elif self._operation_mode in [MODE_AUTO, MODE_AUTO_BYPASS]:
@@ -1160,7 +1152,7 @@ class NeviwebThermostat(ClimateEntity):
 
     @property
     def swing_horizontal_modes(self) -> list[str] | None:
-        """Return available horizontal swing modes"""
+        """Return available horizontal swing modes."""
         return None
 
     def set_activation(self, value):
@@ -1214,8 +1206,8 @@ class NeviwebThermostat(ClimateEntity):
         self._keypad = lock
 
     def set_early_start(self, value):
-        """set early start heating for thermostat, On = early start set to on, Off = set to Off"""
-        """This function is not available for Ouellet OTH3600-GA-GT"""
+        """Set early start heating for thermostat, On = early start set to on, Off = set to Off."""
+        """This function is not available for Ouellet OTH3600-GA-GT."""
         if self._sku == "OTH3600-GA-GT":
             self._early_start = None
         else:
@@ -1225,7 +1217,7 @@ class NeviwebThermostat(ClimateEntity):
             self._early_start = start
 
     def set_time_format(self, value):
-        """set time format 12h or 24h"""
+        """Set time format 12h or 24h."""
         time = value["time"]
         entity = value["id"]
         if time == 12:
@@ -1236,7 +1228,7 @@ class NeviwebThermostat(ClimateEntity):
         self._time_format = time_commande
 
     def set_temperature_format(self, value):
-        """set temperature format celsius or fahrenheit"""
+        """Set temperature format celsius or fahrenheit."""
         temp = value["temp"]
         entity = value["id"]
         self._client.set_temperature_format(entity, temp)
@@ -1246,28 +1238,28 @@ class NeviwebThermostat(ClimateEntity):
             self._temperature_format = UnitOfTemperature.FAHRENHEIT
 
     def set_setpoint_max(self, value):
-        """set maximum setpoint temperature"""
+        """Set maximum setpoint temperature."""
         temp = value["temp"]
         entity = value["id"]
         self._client.set_setpoint_max(entity, temp)
         self._max_temp = temp
 
     def set_setpoint_min(self, value):
-        """set minimum setpoint temperature"""
+        """Set minimum setpoint temperature."""
         temp = value["temp"]
         entity = value["id"]
         self._client.set_setpoint_min(entity, temp)
         self._min_temp = temp
 
     def set_air_floor_mode(self, value):
-        """set ambiant or floor temperature control"""
+        """Set ambiant or floor temperature control."""
         mode = value["mode"]
         entity = value["id"]
         self._client.set_air_floor_mode(entity, mode)
         self._floor_mode = mode
 
     def set_eco_status(self, value):
-        """set eco status on/off"""
+        """Set eco status on/off."""
         status = value["status"]
         entity = value["id"]
         self._client.set_eco_status(entity, status)
@@ -1304,7 +1296,7 @@ class NeviwebThermostat(ClimateEntity):
         self._operation_mode = preset_mode
 
     def set_cycle_length(self, value):
-        """Set main cycle length for low voltage thermostats"""
+        """Set main cycle length for low voltage thermostats."""
         val = value["length"]
         entity = value["id"]
         length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
@@ -1312,7 +1304,7 @@ class NeviwebThermostat(ClimateEntity):
         self._cycle_length = length
 
     def set_aux_cycle_length(self, value):
-        """Set auxiliary cycle length for low voltage thermostats"""
+        """Set auxiliary cycle length for low voltage thermostats."""
         val = value["length"]
         entity = value["id"]
         length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
