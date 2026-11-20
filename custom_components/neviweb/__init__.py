@@ -18,7 +18,6 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import discovery, entity_registry
 from homeassistant.const import (
     CONF_USERNAME,
-    CONF_EMAIL,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
 )
@@ -109,6 +108,7 @@ CONFIG_SCHEMA = vol.Schema(
 
 @callback
 def migrate_entity_unique_id(hass: HomeAssistant):
+    """Migrate int unique_id to str."""
     registry = entity_registry.async_get(hass)
     for entity in list(registry.entities.values()):
         if entity.platform == DOMAIN and isinstance(entity.unique_id, int):
@@ -179,11 +179,12 @@ class NeviwebData:
 
 
 class PyNeviwebError(Exception):
+    """Neviweb error class."""
     pass
 
 
 class NeviwebClient:
-
+    """NeviwebClient class."""
     def __init__(
         self, hass, email, password, network, network2, timeout=REQUESTS_TIMEOUT
     ):
@@ -208,9 +209,11 @@ class NeviwebClient:
         self.__get_gateway_data()
 
     def update(self):
+        """Getting gateway data from Neviweb."""
         self.__get_gateway_data()
 
     def reconnect(self):
+        """Reconnecting to Neviweb."""
         self.__post_login_page()
         self.__get_network()
         self.__get_gateway_data()
@@ -285,7 +288,7 @@ class NeviwebClient:
             _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
             _LOGGER.debug("networks: %s", networks)
             if (
-                self._network_name == None and self._network_name2 == None
+                self._network_name is None and self._network_name2 is None
             ):  # Use 1st network found and second if found
                 self._gateway_id = networks[0]["id"]
                 self._network_name = networks[0]["name"]
@@ -617,7 +620,7 @@ class NeviwebClient:
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
-        """Set devive led indicator intensity and color for on and off state"""
+        """Set devive led indicator intensity and color for on and off state."""
         if state == 1:
             data = {
                 ATTR_LED_ON: {
@@ -640,13 +643,13 @@ class NeviwebClient:
         self.set_device_attributes(device_id, data)
 
     def set_backlight(self, device_id, level):
-        """Set backlight intensity when idle"""
+        """Set backlight intensity when idle."""
         data = {ATTR_BACKLIGHT: level}
         _LOGGER.debug("backlight.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_mode_away(self, device_id, away):
-        """Set light and switch device away mode"""
+        """Set light and switch device away mode."""
         data = {ATTR_AWAY_MODE: {"type": "action", "value": {"action": away}}}
         _LOGGER.debug("away_mode.data = %s", data)
         self.set_device_attributes(device_id, data)
@@ -708,6 +711,7 @@ class NeviwebClient:
     def set_device_attributes(self, device_id, data):
         """Set devices attributes."""
         increment_request_counter(self.hass)
+
         result = 1
         while result < 4:
             try:
@@ -718,29 +722,28 @@ class NeviwebClient:
                     cookies=self._cookies,
                     timeout=self._timeout,
                 )
+
                 _LOGGER.debug("Data = %s", data)
                 _LOGGER.debug("Request response = %s", resp.status_code)
                 _LOGGER.debug("Json Data received = %s", resp.json())
-            #                _LOGGER.debug("Content = %s", resp.content)
-            #                _LOGGER.debug("Text = %s", resp.text)
+
+                if "error" not in resp.json():
+                    break
+
+                result += 1
+                _LOGGER.debug(
+                    "Service error received: %s, resending request %s",
+                    resp.json(),
+                    result,
+                )
+
             except OSError:
                 raise PyNeviwebError(
                     "Cannot set device %s attributes: %s", device_id, data
                 )
-            finally:
-                if "error" in resp.json():
-                    result += 1
-                    _LOGGER.debug(
-                        "Service error received: %s, resending request %s",
-                        resp.json(),
-                        result,
-                    )
-                    continue
-                else:
-                    break
 
     def post_neviweb_status(self, device_id, location, mode):
-        """Send post requests to Neviweb for global occupancy mode"""
+        """Send post requests to Neviweb for global occupancy mode."""
         increment_request_counter(self.hass)
         data = {ATTR_MODE: mode}
         try:
