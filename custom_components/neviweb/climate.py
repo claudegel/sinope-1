@@ -42,6 +42,7 @@ from homeassistant.helpers import config_validation as cv
 
 from homeassistant.components.sensor import SensorDeviceClass
 
+from . import SCAN_INTERVAL as scan_interval
 from .const import (
     DOMAIN,
     ATTR_ACTIVE,
@@ -120,6 +121,7 @@ SUPPORT_AUX_FLAGS = (
 )
 
 DEFAULT_NAME = "neviweb climate"
+SCAN_INTERVAL = scan_interval
 
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 
