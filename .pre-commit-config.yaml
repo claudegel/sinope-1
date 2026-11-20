@@ -22,10 +22,10 @@ repos:
           - flake8-docstrings
           - pydocstyle
 
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.5.2
-    hooks:
-      - id: isort
+#  - repo: https://github.com/PyCQA/isort
+#    rev: 5.5.2
+#    hooks:
+#      - id: isort
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
