@@ -13,7 +13,7 @@ import voluptuous as vol
 import time
 
 import custom_components.neviweb as neviweb
-from . import (SCAN_INTERVAL)
+from . import SCAN_INTERVAL
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 
 from homeassistant.const import (
@@ -35,7 +35,6 @@ from homeassistant.components.sensor import SensorDeviceClass
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
-from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.entity import Entity
 from .const import (
@@ -50,13 +49,13 @@ from .helpers import get_daily_request_count
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = 'neviweb sensor'
+DEFAULT_NAME = "neviweb sensor"
 
 UPDATE_ATTRIBUTES = [
     ATTR_LOCAL_SYNC,
 ]
 
-IMPLEMENTED_DEVICE_MODEL = [125] # GT125
+IMPLEMENTED_DEVICE_MODEL = [125]  # GT125
 
 SET_NEVIWEB_STATUS_SCHEMA = vol.Schema(
     {
@@ -64,6 +63,7 @@ SET_NEVIWEB_STATUS_SCHEMA = vol.Schema(
         vol.Required(ATTR_MODE): vol.In(["home", "away"]),
     }
 )
+
 
 async def async_setup_platform(
     hass,
@@ -80,21 +80,29 @@ async def async_setup_platform(
     entities: list[Entity] = []
     entities.append(NeviwebDailyRequestSensor(hass))
     for device_info in data.neviweb_client.gateway_data:
-        if "signature" in device_info and \
-            "model" in device_info["signature"] and \
-            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
-            device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
+        if (
+            "signature" in device_info
+            and "model" in device_info["signature"]
+            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
+        ):
+            device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
             location_id = device_info["location$id"]
-            entities.append(NeviwebSensor(data, device_info, device_name, device_sku, location_id))
+            entities.append(
+                NeviwebSensor(data, device_info, device_name, device_sku, location_id)
+            )
     for device_info in data.neviweb_client.gateway_data2:
-        if "signature" in device_info and \
-            "model" in device_info["signature"] and \
-            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
-            device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
+        if (
+            "signature" in device_info
+            and "model" in device_info["signature"]
+            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
+        ):
+            device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
             location_id = device_info["location$id"]
-            entities.append(NeviwebSensor(data, device_info, device_name, device_sku, location_id))
+            entities.append(
+                NeviwebSensor(data, device_info, device_name, device_sku, location_id)
+            )
 
     async_add_entities(entities, True)
 
@@ -116,6 +124,7 @@ async def async_setup_platform(
         schema=SET_NEVIWEB_STATUS_SCHEMA,
     )
 
+
 class NeviwebSensor(Entity):
     """Implementation of a Neviweb sensor."""
 
@@ -136,14 +145,11 @@ class NeviwebSensor(Entity):
         start = time.time()
         device_status = self._client.get_device_status(self._id)
         neviweb_status = self._client.get_neviweb_status(self._location)
-        device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES)
+        device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES)
         end = time.time()
         elapsed = round(end - start, 3)
-        _LOGGER.debug("Updating %s (%s sec): %s",
-            self._name, elapsed, device_data)
-        _LOGGER.debug("Updating %s (%s sec): %s",
-            self._name, elapsed, device_status)
+        _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
+        _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_status)
         self._gateway_status = device_status[ATTR_STATUS]
         self._occupancyMode = neviweb_status[ATTR_OCCUPANCY]
         if "error" not in device_data:
@@ -151,25 +157,47 @@ class NeviwebSensor(Entity):
                 self._sync = device_data[ATTR_LOCAL_SYNC]
             else:
                 if device_data["errorCode"] == "ReadTimeout":
-                    _LOGGER.warning("Error in reading device %s: (%s), too slow to respond or busy.", self._name, device_data)
+                    _LOGGER.warning(
+                        "Error in reading device %s: (%s), too slow to respond or busy.",
+                        self._name,
+                        device_data,
+                    )
                 else:
-                    _LOGGER.warning("Unknown errorCode, device: %s, error: %s", self._name, device_data)
+                    _LOGGER.warning(
+                        "Unknown errorCode, device: %s, error: %s",
+                        self._name,
+                        device_data,
+                    )
         else:
             if device_data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.warning("Session expired... reconnecting...")
                 self._client.reconnect()
-            elif device_data["error"]["code"] == "DVCCOMMTO":  
-                _LOGGER.warning("Cannot update %s: %s. Device is busy or does not respond quickly enough.", self._name, device_data)
+            elif device_data["error"]["code"] == "DVCCOMMTO":
+                _LOGGER.warning(
+                    "Cannot update %s: %s. Device is busy or does not respond quickly enough.",
+                    self._name,
+                    device_data,
+                )
             elif device_data["error"]["code"] == "SVCINVREQ":
-                _LOGGER.warning("Invalid or malformed request to Neviweb, %s:",  device_data)
+                _LOGGER.warning(
+                    "Invalid or malformed request to Neviweb, %s:", device_data
+                )
             elif device_data["error"]["code"] == "DVCACTNSPTD":
-                _LOGGER.warning("Device action not supported, %s:",  device_data)
+                _LOGGER.warning("Device action not supported, %s:", device_data)
             elif device_data["error"]["code"] == "DVCUNVLB":
-                _LOGGER.warning("Device %s unavailable, Neviweb maintnance update, %s:", self._name, device_data)
+                _LOGGER.warning(
+                    "Device %s unavailable, Neviweb maintnance update, %s:",
+                    self._name,
+                    device_data,
+                )
             elif device_data["error"]["code"] == "SVCERR":
-                _LOGGER.warning("Device %s statistics unavailables, %s:", self._name, device_data)
+                _LOGGER.warning(
+                    "Device %s statistics unavailables, %s:", self._name, device_data
+                )
             else:
-                _LOGGER.warning("Unknown error, device: %s, error: %s", self._name, device_data)
+                _LOGGER.warning(
+                    "Unknown error, device: %s, error: %s", self._name, device_data
+                )
 
     @property
     def unique_id(self):
@@ -186,19 +214,21 @@ class NeviwebSensor(Entity):
         """Return the device class of this entity."""
         return BinarySensorDeviceClass.CONNECTIVITY
 
-    @property  
+    @property
     def is_on(self):
-        """Return current operation i.e. ON, OFF """
+        """Return current operation i.e. ON, OFF"""
         return self._gateway_status is not None
 
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        return {'gateway_status': self._gateway_status,
-                'neviweb_occupancyMode': self._occupancyMode,
-                'local_sync': self._sync,
-                'sku': self._sku,
-                'id': self._id}
+        return {
+            "gateway_status": self._gateway_status,
+            "neviweb_occupancyMode": self._occupancyMode,
+            "local_sync": self._sync,
+            "sku": self._sku,
+            "id": self._id,
+        }
 
     @property
     def state(self):
