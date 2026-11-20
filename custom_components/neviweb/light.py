@@ -12,8 +12,7 @@ import logging
 import voluptuous as vol
 import time
 
-import custom_components.neviweb as neviweb
-from . import SCAN_INTERVAL
+from . import SCAN_INTERVAL as scan_interval
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
@@ -27,7 +26,6 @@ from homeassistant.const import (
 
 from homeassistant.core import ServiceCall
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
     ATTR_ACTIVE,
@@ -45,7 +43,6 @@ from .const import (
     ATTR_STATE,
     ATTR_TIMER,
     ATTR_WATTAGE_OVERRIDE,
-    MODE_AUTO,
     MODE_MANUAL,
     SERVICE_SET_ACTIVATION,
     SERVICE_SET_LED_INDICATOR,
@@ -58,6 +55,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = "neviweb"
+SCAN_INTERVAL = scan_interval
 
 UPDATE_ATTRIBUTES = [
     ATTR_POWER_MODE,
