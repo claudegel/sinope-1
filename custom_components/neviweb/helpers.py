@@ -1,4 +1,4 @@
-"""Helpers for debugging and logger setup in neviweb"""
+"""Provide helpers for debugging and logger setup in neviweb."""
 
 import asyncio
 import datetime
@@ -30,6 +30,7 @@ def setup_logger(
     backup_count: int = 2,
     reset_on_start: bool = True,
 ):
+    """Set logger for neviweb."""
     if reset_on_start and os.path.exists(log_path):
         clear_log_file(log_path)
 
@@ -60,6 +61,7 @@ def setup_logger(
 
 
 def clear_log_file(log_path: str):
+    """Clear log file on restart."""
     if os.path.exists(log_path):
         try:
             with open(log_path, "w", encoding="utf-8") as f:
@@ -69,6 +71,7 @@ def clear_log_file(log_path: str):
 
 
 def update_logger_level(name: str, level: str):
+    """Change log level."""
     logger = logging.getLogger(name)
     numeric_level = getattr(logging, level.upper(), logging.WARNING)
     logger.setLevel(numeric_level)
@@ -80,6 +83,7 @@ def update_logger_level(name: str, level: str):
 def update_logger_config(
     name: str, log_path: str, level: str, max_bytes: int, backup_count: int
 ):
+    """Update logger configuration."""
     logger = logging.getLogger(name)
     numeric_level = getattr(logging, level.upper(), logging.WARNING)
     logger.setLevel(numeric_level)
