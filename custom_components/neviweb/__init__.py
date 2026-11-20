@@ -180,11 +180,11 @@ class NeviwebData:
 
 class PyNeviwebError(Exception):
     """Neviweb error class."""
-    pass
 
 
 class NeviwebClient:
     """NeviwebClient class."""
+
     def __init__(
         self, hass, email, password, network, network2, timeout=REQUESTS_TIMEOUT
     ):
