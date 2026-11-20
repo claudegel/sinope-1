@@ -4,10 +4,10 @@ repos:
     hooks:
       - id: pyupgrade
 
-  - repo: https://github.com/fsouza/autoflake8
-    rev: v0.3.1
+  - repo: https://github.com/pycqa/autoflake
+    rev: v2.4.0
     hooks:
-      - id: autoflake8
+      - id: autoflake
 
   - repo: https://github.com/psf/black
     rev: 20.8b1
