@@ -1,4 +1,4 @@
-"""Sinopé GT125 Miwi devices support."""
+"""Provide support for Sinopé GT125 Miwi devices."""
 
 from __future__ import annotations
 
