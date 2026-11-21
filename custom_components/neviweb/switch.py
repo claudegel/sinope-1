@@ -1,8 +1,9 @@
 """
 Support for Neviweb switch.
+
 type 120 = load controller device, RM3250RF and RM3200RF model 2505
 
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 
@@ -11,29 +12,16 @@ import logging
 import voluptuous as vol
 import time
 
-import custom_components.neviweb as neviweb
-from . import SCAN_INTERVAL
-from homeassistant.components.switch import (
-    SwitchEntity,
-)
+from homeassistant.components.switch import SwitchEntity
 
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-)
+from homeassistant.const import ATTR_ENTITY_ID
 
-from homeassistant.helpers import (
-    config_validation as cv,
-    discovery,
-    service,
-    entity_platform,
-    entity_component,
-    entity_registry,
-    device_registry,
-)
+from homeassistant.core import ServiceCall
+from homeassistant.helpers import config_validation as cv
 
 from homeassistant.components.sensor import SensorDeviceClass
 
-from homeassistant.helpers.event import track_time_interval
+from . import SCAN_INTERVAL as scan_interval
 from .const import (
     DOMAIN,
     ATTR_ACTIVE,
@@ -48,7 +36,6 @@ from .const import (
     ATTR_AWAY_MODE,
     ATTR_SHED_PLANNING,
     ATTR_STATUS,
-    MODE_AUTO,
     MODE_MANUAL,
     SERVICE_SET_ACTIVATION,
     SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -60,6 +47,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = "neviweb switch"
+SCAN_INTERVAL = scan_interval
 
 UPDATE_ATTRIBUTES = [
     ATTR_POWER_MODE,
@@ -146,7 +134,7 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -160,8 +148,8 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-    def set_switch_keypad_lock_service(service):
-        """lock/unlock keypad device"""
+    def set_switch_keypad_lock_service(service: ServiceCall) -> None:
+        """Lock/unlock keypad device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -171,8 +159,8 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-    def set_switch_timer_service(service):
-        """set timer for switch device"""
+    def set_switch_timer_service(service: ServiceCall) -> None:
+        """Set timer for switch device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -182,8 +170,8 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-    def set_switch_away_mode_service(service):
-        """set light action in away mode"""
+    def set_switch_away_mode_service(service: ServiceCall) -> None:
+        """Set light action in away mode."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -193,8 +181,8 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-    def set_switch_eco_status_service(service):
-        """set switch eco status"""
+    def set_switch_eco_status_service(service: ServiceCall) -> None:
+        """Set switch eco status."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -373,7 +361,7 @@ class NeviwebSwitch(SwitchEntity):
 
     @property
     def is_on(self):
-        """Return current operation i.e. ON, OFF"""
+        """Return current operation i.e. ON, OFF."""
         return self._brightness != 0
 
     def set_activation(self, value):
@@ -412,6 +400,7 @@ class NeviwebSwitch(SwitchEntity):
 
     @property
     def operation_mode(self):
+        """Return device operation mode."""
         return self._operation_mode
 
     @property
@@ -420,28 +409,28 @@ class NeviwebSwitch(SwitchEntity):
         return self._current_power_w == 0
 
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
+        """Lock or unlock device's keypad, lock = locked, unlock = unlocked."""
         lock = value["lock"]
         entity = value["id"]
         self._client.set_keypad_lock(entity, lock)
         self._keypad = lock
 
     def set_timer(self, value):
-        """Set device timer, 0 = off, 1 to 10800 seconds = timer length"""
+        """Set device timer, 0 = off, 1 to 10800 seconds = timer length."""
         time = value["time"]
         entity = value["id"]
         self._client.set_timer(entity, time)
         self._timer = time
 
     def set_away_mode(self, value):
-        """Set device away mode, On, Off, Auto, None"""
+        """Set device away mode, On, Off, Auto, None."""
         away = value["away"]
         entity = value["id"]
         self._client.set_mode_away(entity, away)
         self._away_mode = away
 
     def set_switch_eco_status(self, value):
-        """Set switch eco status on/off"""
+        """Set switch eco status on/off."""
         status = value["status"]
         entity = value["id"]
         self._client.set_switch_eco_status(entity, status)
