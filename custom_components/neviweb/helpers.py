@@ -104,7 +104,7 @@ def update_logger_config(
             updated = True
 
     if not updated:
-        logger.warning("No handler updated — check log_path or initial attachement.")
+        logger.warning("No handler updated — check log_path or initial attachment.")
 
     logger.debug("Logger config updated to level %s", level.upper())
 
