@@ -1,4 +1,4 @@
-"""Helpers for debugging and logger setup in neviweb"""
+"""Provide helpers for debugging and logger setup in neviweb."""
 
 import asyncio
 import datetime
@@ -28,8 +28,9 @@ def setup_logger(
     level: str = "INFO",
     max_bytes: int = 2 * 1024 * 1024,
     backup_count: int = 2,
-    reset_on_start: bool = True
+    reset_on_start: bool = True,
 ):
+    """Set logger for neviweb."""
     if reset_on_start and os.path.exists(log_path):
         clear_log_file(log_path)
 
@@ -38,21 +39,19 @@ def setup_logger(
     logger.setLevel(numeric_level)
 
     handler = RotatingFileHandler(
-        log_path,
-        maxBytes=max_bytes,
-        backupCount=backup_count,
-        encoding="utf-8"
+        log_path, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
     )
     handler.setLevel(numeric_level)
     formatter = logging.Formatter(
         "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     handler.setFormatter(formatter)
 
     # Delete hold handlers on same file
     logger.handlers = [
-        h for h in logger.handlers
+        h
+        for h in logger.handlers
         if not (isinstance(h, RotatingFileHandler) and h.baseFilename == log_path)
     ]
     logger.addHandler(handler)
@@ -62,6 +61,7 @@ def setup_logger(
 
 
 def clear_log_file(log_path: str):
+    """Clear log file on restart."""
     if os.path.exists(log_path):
         try:
             with open(log_path, "w", encoding="utf-8") as f:
@@ -71,6 +71,7 @@ def clear_log_file(log_path: str):
 
 
 def update_logger_level(name: str, level: str):
+    """Change log level."""
     logger = logging.getLogger(name)
     numeric_level = getattr(logging, level.upper(), logging.WARNING)
     logger.setLevel(numeric_level)
@@ -79,27 +80,38 @@ def update_logger_level(name: str, level: str):
     logger.debug("Logger level updated to %s", level.upper())
 
 
-def update_logger_config(name: str, log_path: str, level: str, max_bytes: int, backup_count: int):
+def update_logger_config(
+    name: str, log_path: str, level: str, max_bytes: int, backup_count: int
+):
+    """Update logger configuration."""
     logger = logging.getLogger(name)
     numeric_level = getattr(logging, level.upper(), logging.WARNING)
     logger.setLevel(numeric_level)
 
     updated = False
     for h in logger.handlers:
-        if isinstance(h, RotatingFileHandler) and os.path.samefile(h.baseFilename, log_path):
+        if isinstance(h, RotatingFileHandler) and os.path.samefile(
+            h.baseFilename, log_path
+        ):
             h.setLevel(numeric_level)
             h.maxBytes = max_bytes
             h.backupCount = backup_count
-            logger.debug("Logger handler mis à jour : max_bytes=%s, backup_count=%s", max_bytes, backup_count)
+            logger.debug(
+                "Logger handler updated : max_bytes=%s, backup_count=%s",
+                max_bytes,
+                backup_count,
+            )
             updated = True
 
     if not updated:
-        logger.warning("Aucun handler mis à jour — vérifie le log_path ou l’attachement initial")
+        logger.warning("No handler updated — check log_path or initial attachment.")
 
     logger.debug("Logger config updated to level %s", level.upper())
 
 
-def expose_log_file(hass, log_path: str, public_name: str = "neviweb.log", expire_after: int = 1800) -> str | None:
+def expose_log_file(
+    hass, log_path: str, public_name: str = "neviweb.log", expire_after: int = 1800
+) -> str | None:
     """Copy log file to /config/www for browser download with forced filename."""
     www_dir = hass.config.path("www")
     os.makedirs(www_dir, exist_ok=True)
@@ -167,7 +179,9 @@ def increment_request_counter(hass):
     data["count"] += 1
 
     # Persistent saving
-    future = asyncio.run_coroutine_threadsafe(hass.data[DOMAIN]["request_store"].async_save(data), hass.loop)
+    future = asyncio.run_coroutine_threadsafe(
+        hass.data[DOMAIN]["request_store"].async_save(data), hass.loop
+    )
     future.result()
 
     return data["count"]

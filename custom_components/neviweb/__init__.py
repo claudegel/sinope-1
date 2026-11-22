@@ -1,11 +1,10 @@
-"""Sinopé GT125 Miwi devices support."""
+"""Provide support for Sinopé GT125 Miwi devices."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
 import os
-import json
 from datetime import timedelta
 from typing import Any
 
@@ -19,7 +18,6 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import discovery, entity_registry
 from homeassistant.const import (
     CONF_USERNAME,
-    CONF_EMAIL,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
 )
@@ -64,7 +62,9 @@ DEFAULT_LOG_BACKUP_COUNT = 3
 DEFAULT_LOG_RESET_ON_START = True
 LOGGER_NAME = "custom_components.neviweb"
 
-LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../neviweb_log.txt"))
+LOG_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../neviweb_log.txt")
+)
 
 existing_logger = logging.getLogger(LOGGER_NAME)
 level_name = logging.getLevelName(existing_logger.level)
@@ -75,7 +75,7 @@ setup_logger(
     level=level_name,
     max_bytes=DEFAULT_LOG_MAX_BYTES,
     backup_count=DEFAULT_LOG_BACKUP_COUNT,
-    reset_on_start=DEFAULT_LOG_RESET_ON_START
+    reset_on_start=DEFAULT_LOG_RESET_ON_START,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -90,26 +90,31 @@ GATEWAY_DEVICE_URL = "{}/api/devices?location$id=".format(HOST)
 DEVICE_DATA_URL = "{}/api/device/".format(HOST)
 NEVIWEB_LOCATION = "{}/api/location/".format(HOST)
 
-CONFIG_SCHEMA = vol.Schema({
-    DOMAIN: vol.Schema({
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional(CONF_NETWORK): cv.string,
-        vol.Optional(CONF_NETWORK2): cv.string,
-        vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
-            cv.time_period
-    })
-}, 
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Required(CONF_USERNAME): cv.string,
+                vol.Required(CONF_PASSWORD): cv.string,
+                vol.Optional(CONF_NETWORK): cv.string,
+                vol.Optional(CONF_NETWORK2): cv.string,
+                vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
+            }
+        )
+    },
     extra=vol.ALLOW_EXTRA,
 )
 
 
 @callback
 def migrate_entity_unique_id(hass: HomeAssistant):
+    """Migrate int unique_id to str."""
     registry = entity_registry.async_get(hass)
     for entity in list(registry.entities.values()):
         if entity.platform == DOMAIN and isinstance(entity.unique_id, int):
-            registry.async_update_entity(entity.entity_id, new_unique_id=str(entity.unique_id))
+            registry.async_update_entity(
+                entity.entity_id, new_unique_id=str(entity.unique_id)
+            )
             _LOGGER.debug(f"Migrated unique_id from int to str for {entity.entity_id}")
 
     # All platforms will wait for this asynchronously, before loading anything.
@@ -137,16 +142,17 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     # Migrate entity unique_ids from int -> str.
     hass.add_job(migrate_entity_unique_id, hass)
 
-    global SCAN_INTERVAL 
+    global SCAN_INTERVAL
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
 
-    discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
-    discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
-    discovery.load_platform(hass, 'switch', DOMAIN, {}, hass_config)
-    discovery.load_platform(hass, 'sensor', DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, "climate", DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, "light", DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, "switch", DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, "sensor", DOMAIN, {}, hass_config)
 
     return True
+
 
 class NeviwebData:
     """Get the latest data and update the states."""
@@ -162,20 +168,26 @@ class NeviwebData:
 
         self.migration_done = asyncio.Event()
 
-# According to HA: 
+
+# According to HA:
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
-# "All API specific code has to be part of a third party library hosted on PyPi. 
+# "All API specific code has to be part of a third party library hosted on PyPi.
 # Home Assistant should only interact with objects and not make direct calls to the API."
 # So all code below this line should eventually be integrated in a PyPi project.
 
-#from PY_Sinope import pyneviweb
+# from PY_Sinope import pyneviweb
+
 
 class PyNeviwebError(Exception):
-    pass
+    """Neviweb error class."""
 
-class NeviwebClient(object):
 
-    def __init__(self, hass, email, password, network, network2, timeout=REQUESTS_TIMEOUT):
+class NeviwebClient:
+    """NeviwebClient class."""
+
+    def __init__(
+        self, hass, email, password, network, network2, timeout=REQUESTS_TIMEOUT
+    ):
         """Initialize the client object."""
         self.hass = hass
         self._email = email
@@ -197,9 +209,11 @@ class NeviwebClient(object):
         self.__get_gateway_data()
 
     def update(self):
+        """Retrieve gateway data from Neviweb."""
         self.__get_gateway_data()
 
     def reconnect(self):
+        """Reconnecting to Neviweb."""
         self.__post_login_page()
         self.__get_network()
         self.__get_gateway_data()
@@ -220,12 +234,20 @@ class NeviwebClient(object):
     def __post_login_page(self):
         """Login to Neviweb."""
         increment_request_counter(self.hass)
-        data = {"username": self._email, "password": self._password, 
-            "interface": "neviweb", "stayConnected": 1}
+        data = {
+            "username": self._email,
+            "password": self._password,
+            "interface": "neviweb",
+            "stayConnected": 1,
+        }
         try:
-            raw_res = requests.post(LOGIN_URL, json=data, 
-                cookies=self._cookies, allow_redirects=False, 
-                timeout=self._timeout)
+            raw_res = requests.post(
+                LOGIN_URL,
+                json=data,
+                cookies=self._cookies,
+                allow_redirects=False,
+                timeout=self._timeout,
+            )
         except OSError:
             raise PyNeviwebError("Cannot submit login form")
         if raw_res.status_code != 200:
@@ -238,9 +260,11 @@ class NeviwebClient(object):
         _LOGGER.debug("Login response: %s", data)
         if "error" in data:
             if data["error"]["code"] == "ACCSESSEXC":
-                _LOGGER.error("Too many active sessions. Close all Neviweb " +
-                "sessions you have opened on other platform (mobile, browser" +
-                ", ...), wait a few minutes, then reboot Home Assistant.")
+                _LOGGER.error(
+                    "Too many active sessions. Close all Neviweb "
+                    + "sessions you have opened on other platform (mobile, browser"
+                    + ", ...), wait a few minutes, then reboot Home Assistant."
+                )
             return False
         else:
             self.user = data["user"]
@@ -254,12 +278,18 @@ class NeviwebClient(object):
         increment_request_counter(self.hass)
         # Http request
         try:
-            raw_res = requests.get(LOCATIONS_URL + self._account, headers=self._headers, 
-                cookies=self._cookies, timeout=self._timeout)
+            raw_res = requests.get(
+                LOCATIONS_URL + self._account,
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            )
             networks = raw_res.json()
             _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
             _LOGGER.debug("networks: %s", networks)
-            if self._network_name == None and self._network_name2 == None: # Use 1st network found and second if found
+            if (
+                self._network_name is None and self._network_name2 is None
+            ):  # Use 1st network found and second if found
                 self._gateway_id = networks[0]["id"]
                 self._network_name = networks[0]["name"]
                 if len(networks) > 1:
@@ -270,31 +300,55 @@ class NeviwebClient(object):
                 for network in networks:
                     if network["name"] == self._network_name:
                         self._gateway_id = network["id"]
-                        _LOGGER.debug("Selecting %s network among: %s",
-                            self._network_name, networks)
+                        _LOGGER.debug(
+                            "Selecting %s network among: %s",
+                            self._network_name,
+                            networks,
+                        )
                         continue
-                    elif (network["name"] == self._network_name.capitalize()) or (network["name"] == self._network_name[0].lower()+self._network_name[1:]):
+                    elif (network["name"] == self._network_name.capitalize()) or (
+                        network["name"]
+                        == self._network_name[0].lower() + self._network_name[1:]
+                    ):
                         self._gateway_id = network["id"]
-                        _LOGGER.debug("Please check first letter of your network name, In capital letter or not? Selecting %s network among: %s",
-                            self._network_name, networks)
+                        _LOGGER.debug(
+                            "Please check first letter of your network name, In capital letter or not? Selecting %s network among: %s",
+                            self._network_name,
+                            networks,
+                        )
                         continue
                     else:
-                        _LOGGER.debug("Your network name %s do not correspond to discovered network %s, skipping this one...",
-                            self._network_name, network["name"])
+                        _LOGGER.debug(
+                            "Your network name %s do not correspond to discovered network %s, skipping this one...",
+                            self._network_name,
+                            network["name"],
+                        )
                     if self._network_name2 is not None:
                         if network["name"] == self._network_name2:
                             self._gateway_id2 = network["id"]
-                            _LOGGER.debug("Selecting %s network among: %s",
-                                self._network_name2, networks)
+                            _LOGGER.debug(
+                                "Selecting %s network among: %s",
+                                self._network_name2,
+                                networks,
+                            )
                             continue
-                        elif (network["name"] == self._network_name2.capitalize()) or (network["name"] == self._network_name2[0].lower()+self._network_name2[1:]):
+                        elif (network["name"] == self._network_name2.capitalize()) or (
+                            network["name"]
+                            == self._network_name2[0].lower() + self._network_name2[1:]
+                        ):
                             self._gateway_id = network["id"]
-                            _LOGGER.debug("Please check first letter of your network2 name, In capital letter or not? Selecting %s network among: %s",
-                                self._network_name2, networks)
+                            _LOGGER.debug(
+                                "Please check first letter of your network2 name, In capital letter or not? Selecting %s network among: %s",
+                                self._network_name2,
+                                networks,
+                            )
                             continue
                         else:
-                            _LOGGER.debug("Your network name %s do not correspond to discovered network %s, skipping this one...",
-                                self._network_name2, network["name"])
+                            _LOGGER.debug(
+                                "Your network name %s do not correspond to discovered network %s, skipping this one...",
+                                self._network_name2,
+                                network["name"],
+                            )
 
         except OSError:
             raise PyNeviwebError("Cannot get networks...")
@@ -308,7 +362,9 @@ class NeviwebClient(object):
         increment_request_counter(self.hass)
         # Check if gateway_id was set
         if self._gateway_id is None and self._gateway_id2 is None:
-            _LOGGER.warning("No gateway defined, check your config for networks names...")
+            _LOGGER.warning(
+                "No gateway defined, check your config for networks names..."
+            )
             self.notify_ha(
                 "All Gateway ID are None. Network selection failed. "
                 + "Check that your configuration network names match one of the networks in your Neviweb account. "
@@ -316,9 +372,12 @@ class NeviwebClient(object):
             )
         # Http request
         try:
-            raw_res = requests.get(GATEWAY_DEVICE_URL + str(self._gateway_id),
-                headers=self._headers, cookies=self._cookies, 
-                timeout=self._timeout)
+            raw_res = requests.get(
+                GATEWAY_DEVICE_URL + str(self._gateway_id),
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            )
             _LOGGER.debug("Received gateway data: %s", raw_res.json())
         except OSError:
             raise PyNeviwebError("Cannot get gateway data")
@@ -329,9 +388,12 @@ class NeviwebClient(object):
         _LOGGER.debug("Gateway_data : %s", self.gateway_data)
         if self._gateway_id2 is not None:
             try:
-                raw_res2 = requests.get(GATEWAY_DEVICE_URL + str(self._gateway_id2),
-                    headers=self._headers, cookies=self._cookies, 
-                    timeout=self._timeout)
+                raw_res2 = requests.get(
+                    GATEWAY_DEVICE_URL + str(self._gateway_id2),
+                    headers=self._headers,
+                    cookies=self._cookies,
+                    timeout=self._timeout,
+                )
                 _LOGGER.debug("Received gateway data 2: %s", raw_res2.json())
             except OSError:
                 raise PyNeviwebError("Cannot get gateway data 2")
@@ -342,14 +404,15 @@ class NeviwebClient(object):
             data = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
             if ATTR_SIGNATURE in data:
                 device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
-           # _LOGGER.debug("Received signature data: %s", data)
-        if self._gateway_id2 is not None:          
+        # _LOGGER.debug("Received signature data: %s", data)
+        if self._gateway_id2 is not None:
             for device in self.gateway_data2:
                 data2 = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
                 if ATTR_SIGNATURE in data2:
                     device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
-               # _LOGGER.debug("Received signature data: %s", data)
-       # _LOGGER.debug("Updated gateway data: %s", self.gateway_data)
+            # _LOGGER.debug("Received signature data: %s", data)
+
+    # _LOGGER.debug("Updated gateway data: %s", self.gateway_data)
 
     def get_device_attributes(self, device_id, attributes):
         """Get device attributes."""
@@ -358,10 +421,15 @@ class NeviwebClient(object):
         data = {}
         # Http request
         try:
-            raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
-                "/attribute?attributes=" + ",".join(attributes), 
-                headers=self._headers, cookies=self._cookies,
-                timeout=self._timeout)
+            raw_res = requests.get(
+                DEVICE_DATA_URL
+                + str(device_id)
+                + "/attribute?attributes="
+                + ",".join(attributes),
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            )
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
@@ -372,8 +440,10 @@ class NeviwebClient(object):
         data = raw_res.json()
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error("Session expired. Set a scan_interval less" +
-                "than 10 minutes, otherwise the session will end.")
+                _LOGGER.error(
+                    "Session expired. Set a scan_interval less"
+                    + "than 10 minutes, otherwise the session will end."
+                )
         return data
 
     def get_device_status(self, device_id):
@@ -383,23 +453,28 @@ class NeviwebClient(object):
         data = {}
         # Http request
         try:
-            raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
-                "/status", headers=self._headers, cookies=self._cookies,
-                timeout=self._timeout)
+            raw_res = requests.get(
+                DEVICE_DATA_URL + str(device_id) + "/status",
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            )
             _LOGGER.debug("Received GT125 status: %s", raw_res.json())
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
             raise PyNeviwebError("Cannot get GT125 status", e)
         # Update cookies
-        #self._cookies.update(raw_res.cookies)
+        # self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error("Session expired. Set a scan_interval less" +
-                "than 10 minutes, otherwise the session will end.")
-                #raise PyNeviweb130Error("Session expired... reconnecting...")
+                _LOGGER.error(
+                    "Session expired. Set a scan_interval less"
+                    + "than 10 minutes, otherwise the session will end."
+                )
+                # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
 
     def get_neviweb_status(self, location):
@@ -409,9 +484,12 @@ class NeviwebClient(object):
         data = {}
         # Http request
         try:
-            raw_res = requests.get(NEVIWEB_LOCATION + str(location) +
-                "/notifications", headers=self._headers, cookies=self._cookies,
-                timeout=self._timeout)
+            raw_res = requests.get(
+                NEVIWEB_LOCATION + str(location) + "/notifications",
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            )
             _LOGGER.debug("Received neviweb status: %s", raw_res.json())
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
@@ -420,9 +498,11 @@ class NeviwebClient(object):
         data = raw_res.json()
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error("Session expired. Set a scan_interval less" +
-                "than 10 minutes, otherwise the session will end.")
-                #raise PyNeviweb130Error("Session expired... reconnecting...")
+                _LOGGER.error(
+                    "Session expired. Set a scan_interval less"
+                    + "than 10 minutes, otherwise the session will end."
+                )
+                # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
 
     def get_device_daily_stats(self, device_id):
@@ -432,9 +512,12 @@ class NeviwebClient(object):
         data = {}
         # Http request
         try:
-            raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
-                    "/statistics/30days", headers=self._headers,
-                    cookies=self._cookies, timeout=self._timeout)
+            raw_res = requests.get(
+                DEVICE_DATA_URL + str(device_id) + "/statistics/30days",
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            )
         except OSError:
             raise PyNeviwebError("Cannot get device daily stats...")
             return None
@@ -455,9 +538,12 @@ class NeviwebClient(object):
         data = {}
         # Http request
         try:
-            raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
-                "/statistics/24hours", headers=self._headers,
-                cookies=self._cookies, timeout=self._timeout)
+            raw_res = requests.get(
+                DEVICE_DATA_URL + str(device_id) + "/statistics/24hours",
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            )
         except OSError:
             raise PyNeviwebError("Cannot get device hourly stats...")
             return None
@@ -534,23 +620,37 @@ class NeviwebClient(object):
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
-        """Set devive led indicator intensity and color for on and off state"""
+        """Set device led indicator intensity and color for on and off state."""
         if state == 1:
-            data = {ATTR_LED_ON:{"intensity":intensity,"red":red,"green":green,"blue":blue}}
+            data = {
+                ATTR_LED_ON: {
+                    "intensity": intensity,
+                    "red": red,
+                    "green": green,
+                    "blue": blue,
+                }
+            }
         else:
-            data = {ATTR_LED_OFF:{"intensity":intensity,"red":red,"green":green,"blue":blue}}
+            data = {
+                ATTR_LED_OFF: {
+                    "intensity": intensity,
+                    "red": red,
+                    "green": green,
+                    "blue": blue,
+                }
+            }
         _LOGGER.debug("led.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_backlight(self, device_id, level):
-        """ Set backlight intensity when idle """
+        """Set backlight intensity when idle."""
         data = {ATTR_BACKLIGHT: level}
         _LOGGER.debug("backlight.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_mode_away(self, device_id, away):
-        """ Set light and switch device away mode """
-        data = {ATTR_AWAY_MODE:{"type":"action","value":{"action":away}}}
+        """Set light and switch device away mode."""
+        data = {ATTR_AWAY_MODE: {"type": "action", "value": {"action": away}}}
         _LOGGER.debug("away_mode.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -592,7 +692,7 @@ class NeviwebClient(object):
 
     def set_eco_status(self, device_id, status):
         """Set thermostats eco status on/off."""
-        data = {ATTR_SHED_STATUS:{"temperature": status,"power":0,"optOut":0}}
+        data = {ATTR_SHED_STATUS: {"temperature": status, "power": 0, "optOut": 0}}
         _LOGGER.debug("Eco.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -611,41 +711,54 @@ class NeviwebClient(object):
     def set_device_attributes(self, device_id, data):
         """Set devices attributes."""
         increment_request_counter(self.hass)
+
         result = 1
         while result < 4:
             try:
-                resp = requests.put(DEVICE_DATA_URL + str(device_id) + "/attribute",
-                    json=data, headers=self._headers, cookies=self._cookies,
-                    timeout=self._timeout)
+                resp = requests.put(
+                    DEVICE_DATA_URL + str(device_id) + "/attribute",
+                    json=data,
+                    headers=self._headers,
+                    cookies=self._cookies,
+                    timeout=self._timeout,
+                )
+
                 _LOGGER.debug("Data = %s", data)
                 _LOGGER.debug("Request response = %s", resp.status_code)
                 _LOGGER.debug("Json Data received = %s", resp.json())
-#                _LOGGER.debug("Content = %s", resp.content)
-#                _LOGGER.debug("Text = %s", resp.text)
-            except OSError:
-                raise PyNeviwebError("Cannot set device %s attributes: %s", 
-                    device_id, data)
-            finally:
-                if "error" in resp.json():
-                    result += 1
-                    _LOGGER.debug("Service error received: %s, resending request %s",resp.json(), result)
-                    continue
-                else:
+
+                if "error" not in resp.json():
                     break
 
+                result += 1
+                _LOGGER.debug(
+                    "Service error received: %s, resending request %s",
+                    resp.json(),
+                    result,
+                )
+
+            except OSError:
+                raise PyNeviwebError(
+                    "Cannot set device %s attributes: %s", device_id, data
+                )
+
     def post_neviweb_status(self, device_id, location, mode):
-        """Send post requests to Neviweb for global occupancy mode"""
+        """Send post requests to Neviweb for global occupancy mode."""
         increment_request_counter(self.hass)
         data = {ATTR_MODE: mode}
         try:
-            resp = requests.post(NEVIWEB_LOCATION + location + "/mode",
-                json=data, headers=self._headers, cookies=self._cookies,
-                timeout=self._timeout)
-#            _LOGGER.debug("Post requests = %s%s%s %s", NEVIWEB_LOCATION, location, "/mode", data)
+            resp = requests.post(
+                NEVIWEB_LOCATION + location + "/mode",
+                json=data,
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            )
+            #            _LOGGER.debug("Post requests = %s%s%s %s", NEVIWEB_LOCATION, location, "/mode", data)
             _LOGGER.debug("Data = %s", data)
             _LOGGER.debug("Requests response = %s", resp.status_code)
             _LOGGER.debug("Json Data received= %s", resp.json())
         except OSError:
-                raise PyNeviwebError("Cannot post Neviweb: %s", data)
+            raise PyNeviwebError("Cannot post Neviweb: %s", data)
         if "error" in resp.json():
-            _LOGGER.debug("Service error received: %s",resp.json())
+            _LOGGER.debug("Service error received: %s", resp.json())
