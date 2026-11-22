@@ -35,6 +35,9 @@ repos:
         exclude: '(^custom_components/testing/|.*_fr\.md$|.*_fr\.yaml$)'
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.902
+    rev: v2.4.1
     hooks:
       - id: mypy
+        additional_dependencies:
+          - homeassistant-stubs
+          - types-requests
