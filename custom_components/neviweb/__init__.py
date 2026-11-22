@@ -620,7 +620,7 @@ class NeviwebClient:
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
-        """Set devive led indicator intensity and color for on and off state."""
+        """Set device led indicator intensity and color for on and off state."""
         if state == 1:
             data = {
                 ATTR_LED_ON: {
