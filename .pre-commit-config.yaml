@@ -32,6 +32,8 @@ repos:
     rev: v2.1.0
     hooks:
       - id: codespell
+        exclude: >
+          (^custom_components/testing/|.*_fr\.md$)
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.902
