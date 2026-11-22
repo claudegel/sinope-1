@@ -97,7 +97,7 @@ def update_logger_config(
             h.maxBytes = max_bytes
             h.backupCount = backup_count
             logger.debug(
-                "Logger handler mis à jour : max_bytes=%s, backup_count=%s",
+                "Logger handler updated : max_bytes=%s, backup_count=%s",
                 max_bytes,
                 backup_count,
             )
@@ -105,7 +105,7 @@ def update_logger_config(
 
     if not updated:
         logger.warning(
-            "Aucun handler mis à jour — vérifie le log_path ou l’attachement initial"
+            "No handler updated — check log_path or initial attachement."
         )
 
     logger.debug("Logger config updated to level %s", level.upper())
