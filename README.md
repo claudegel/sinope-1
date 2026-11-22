@@ -4,7 +4,7 @@
 > If you'd like to support its ongoing development, you can contribute here:
 > [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/)
 
-Custom components to suport [Neviweb](https://neviweb.com/) Miwi devices in [Home Assistant](http://www.home-assistant.io). 
+Custom components to support [Neviweb](https://neviweb.com/) Miwi devices in [Home Assistant](http://www.home-assistant.io). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
 switches/dimmers and load controllers. It also supports some devices made by 
 [Ouellet](http://www.ouellet.com/en-ca/products/thermostats-and-controls/neviweb%C2%AE-wireless-communication-controls.aspx). 
@@ -166,21 +166,21 @@ Those custom services can be accessed via development tool/services or can be us
   state. you can send any color in the RGB list via the three color parameters red, green and blue and you can set intensity
   of the led indicator.
 - neviweb.set_time_format, to display time in 12h or 24h on thermostats.
-- neviweb.set_temperature_format, to disply temperature in celsius or fahrenheit format on thermostats.
+- neviweb.set_temperature_format, to display temperature in Celsius or Fahrenheit format on thermostats.
 - neviweb.set_early_start, to set thermostat early start heating.
-- neviweb.set_backlight, to set bakclight intensity in state «on» or «off» for thermostats.
+- neviweb.set_backlight, to set back light intensity in state «on» or «off» for thermostats.
 - neviweb.set_wattage, to set wattageOverload for light devices.
 - neviweb.set_setpoint_min, to set minimum setpoint temperature for thermostats.
 - neviweb.set_setpoint_max, to set maximum setpoint temperature for thermostats.
-- neviweb.set_light_away_mode, to set mode for light when occupency is set to away.
-- neviweb.set_switch_away_mode, to set mode for switch when occupency is set to away.
+- neviweb.set_light_away_mode, to set mode for light when occupancy is set to away.
+- neviweb.set_switch_away_mode, to set mode for switch when occupancy is set to away.
 - neviweb.set_cycle_length, to set low voltage thermostat main cycle length. Values are:
   "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
 - neviweb.set_aux_cycle_length, to set low voltage thermostat auxiliary cycle length and output. Values are:
-  "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min". To trun on/off auxiliary heating just use
+  "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min". To turn on/off auxiliary heating just use
   the button at the bottom of the thermostat card.
-- neviweb.set_eco_status, to set eco status on/off of thermostats.
-- neviweb.set_switch_eco_status, to set switch eco status on/off.
+- neviweb.set_eco_status, to set Eco status on/off of thermostats.
+- neviweb.set_switch_eco_status, to set switch Eco status on/off.
 - neviweb.set_em_heat, to turn on/off auxiliary/emergency heating.
 - neviweb.set_neviweb_status, to change Neviweb global home/away status.
 
@@ -191,15 +191,15 @@ each time it reach 2 meg in size. Log rotation have a total of 4 files.
 
 ## Catch Eco Sinope signal for peak period
 
-If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch 
-when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler.
-Three attributes have been added to know that peak period is comming:
+If you have at least on thermostat or one load controller registered with Éco Sinopé program, it is now possible to catch 
+when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controller.
+Three attributes have been added to know that peak period is coming:
 - For thermostats:
   - eco_status: set to 0 during normal period, to 1, during pre-heat and peak period.
   - eco_power: set to 0 during normal operation, to 1 if thermostat is heating during peak period
   - eco_optout: set to 0 normal operation during peak period, to 1 if somebody have changed the setpoint on the thermostat
     during peak period.
-- For load controler:
+- For load controller:
   - eco_status: set to «none» during normal operation, to «active» 10 minutes before peak period and to «planned»
     during peak period.
 
@@ -249,7 +249,7 @@ You can also post in one of those threads to get help:
 
 ### Turning on Neviweb debug messages in `neviweb_log.txt` file
 
-Add thoses lines to your `configuration.yaml` file
+Add those lines to your `configuration.yaml` file
    ```yaml
    logger:
      default: warning
