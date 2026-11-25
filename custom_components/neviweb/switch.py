@@ -132,7 +132,20 @@ async def async_setup_platform(
             device_sku = device_info["sku"]
             entities.append(NeviwebSwitch(data, device_info, device_name, device_sku))
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
+
+    async def _refresh_entities_initially() -> None:
+        """Refresh entities one by one after startup, without blocking setup."""
+        for entity in entities:
+            if hass.is_stopping:
+                return
+            try:
+                await entity.async_device_update()
+                entity.async_write_ha_state()
+            except Exception:  # noqa: BLE001 - one bad device must not abort the sweep
+                _LOGGER.warning("Initial refresh failed for %s", entity.name)
+
+    hass.async_create_task(_refresh_entities_initially())
 
     def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
