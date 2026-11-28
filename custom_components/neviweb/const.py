@@ -18,11 +18,22 @@ DOC_URL = f"{data['documentation']}"
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
 {NAME} ({DOMAIN})
-Version: {VERSION}
-Requirement: Home Assistant minimum version {REQUIRE}
-This is a custom integration!
-If you have any issues with this you need to open an issue here: {ISSUE_URL}
-Documentation: {DOC_URL}
+Version : {VERSION}
+
+Exigence : Home Assistant {REQUIRE} ou supérieur
+Requirement: Home Assistant {REQUIRE} or later
+
+Ceci est une intégration personnalisée !
+This is a custom integration !
+
+Pour signaler un problème :
+To report an issue:
+
+{ISSUE_URL}
+
+Documentation :
+
+{DOC_URL}
 -------------------------------------------------------------------
 """
 
